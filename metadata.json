@@ -1,0 +1,5 @@
+{
+  "name": "Transport Vehicle Management",
+  "description": "A comprehensive application to manage transport vehicles, drivers, customers, routes, and financials. Allows for CRUD operations on all major entities involved in a transport business.",
+  "requestFramePermissions": []
+}
