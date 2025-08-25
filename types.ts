@@ -1,5 +1,5 @@
 export interface BaseEntity {
-  id: number;
+  id: number | string;
   created_at?: string;
   updated_at?: string;
 }
@@ -11,9 +11,11 @@ export interface User extends BaseEntity {
 
 export interface Customer extends BaseEntity {
   name: string;
-  email: string;
-  phone: string;
-  address: string;
+  phone?: string;
+  address?: string;
+  location?: string;
+  country?: string;
+  metadata?: string; // JSON string
 }
 
 export interface VehicleType extends BaseEntity {

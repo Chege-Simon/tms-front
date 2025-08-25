@@ -19,25 +19,36 @@ const request = async <T>(endpoint: string, options: RequestInit = {}): Promise<
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
 
-    // Attempt to parse the JSON body, which is expected for both success and error cases.
-    const responseData = await response.json().catch(() => ({ 
-        message: 'The server returned a non-JSON or empty response.',
-        data: null
-    }));
+    const text = await response.text();
+    // Handle empty response body for success cases (e.g., DELETE 204 No Content)
+    if (!text) {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return {} as T;
+    }
+
+    const responseData = JSON.parse(text);
 
     if (!response.ok) {
+        // Use the message from the JSON error response if available
         throw new Error(responseData.message || `HTTP error! status: ${response.status}`);
     }
     
-    // Per the API specification, the actual payload is nested in the `data` property.
-    return responseData.data;
+    // The API wraps most responses in a `data` property. We will unwrap it here.
+    // This also handles unwrapped responses (like login) by checking for the `data` property's existence.
+    if (responseData && typeof responseData === 'object' && 'data' in responseData) {
+        return responseData.data;
+    }
+    
+    return responseData;
 };
 
 const api = {
     get: <T>(endpoint: string) => request<T>(endpoint, { method: 'GET' }),
     post: <T>(endpoint: string, body: any) => request<T>(endpoint, { method: 'POST', body: JSON.stringify(body) }),
     put: <T>(endpoint: string, body: any) => request<T>(endpoint, { method: 'PUT', body: JSON.stringify(body) }),
-    del: <T>(endpoint: string) => request<T>(endpoint, { method: 'DELETE' }),
+    del: <T>(endpoint:string) => request<T>(endpoint, { method: 'DELETE' }),
 };
 
 export default api;

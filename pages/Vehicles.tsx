@@ -60,8 +60,22 @@ const Vehicles: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    const isNumeric = ['year', 'vehicle_type_id'].includes(name);
-    setCurrentItem(prev => ({ ...prev, [name]: isNumeric ? parseInt(value) : value }));
+    setCurrentItem(prev => {
+      const updated = { ...prev };
+      switch (name) {
+        case 'make':
+        case 'model':
+        case 'vin':
+        case 'license_plate':
+          updated[name] = value;
+          break;
+        case 'year':
+        case 'vehicle_type_id':
+          updated[name] = parseInt(value, 10) || 0;
+          break;
+      }
+      return updated;
+    });
   };
 
   return (
