@@ -37,7 +37,6 @@ export const useCrud = <T extends BaseEntity>(endpoint: string) => {
     setError(null);
     setLastUrl(url);
     try {
-      // api.get() now returns the unwrapped payload directly.
       const payload = await api.get<PaginatedResponse<T> | T[]>(url);
       
       if (payload && typeof payload === 'object' && 'data' in payload && Array.isArray((payload as PaginatedResponse<T>).data)) {
@@ -103,11 +102,15 @@ export const useFetch = <T,>(endpoint: string) => {
 
     const fetchData = useCallback(async () => {
         setLoading(true);
+        setError(null);
         try {
-            // api.get() now returns the unwrapped data directly.
-            const responseData = await api.get<T>(endpoint);
-            setData(responseData);
-            setError(null);
+            const responseData = await api.get<any>(endpoint);
+            // Handle paginated responses by unwrapping the data array.
+            if (responseData && typeof responseData === 'object' && 'data' in responseData && Array.isArray(responseData.data)) {
+                setData(responseData.data as T);
+            } else {
+                setData(responseData as T);
+            }
         } catch (err) {
             setError(err instanceof Error ? err : new Error('An unknown error occurred'));
         } finally {

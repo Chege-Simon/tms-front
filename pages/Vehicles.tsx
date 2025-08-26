@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo } from 'react';
 import Header from '../components/Header';
 import DataTable, { type Column } from '../components/DataTable';
@@ -10,14 +11,16 @@ import { useCrud, useFetch } from '../hooks/useCrud';
 import type { Vehicle, VehicleType } from '../types';
 import { EditIcon, DeleteIcon, PlusIcon } from '../components/icons';
 
-const emptyVehicle: Omit<Vehicle, 'id'> = { make: '', model: '', year: new Date().getFullYear(), vin: '', license_plate: '', vehicle_type_id: 0 };
+// FIX: Explicitly typing emptyVehicle and currentItem state provides better type safety
+// and ensures compatibility with the useCrud hook's addItem function.
+const emptyVehicle: Omit<Vehicle, 'id' | 'created_at' | 'updated_at'> = { make: '', model: '', year: new Date().getFullYear(), vin: '', license_plate: '', vehicle_type_id: 0 };
 
 const Vehicles: React.FC = () => {
   const { items: vehicles, addItem, updateItem, deleteItem, loading, error } = useCrud<Vehicle>('/vehicles');
   const { data: vehicleTypes, loading: vehicleTypesLoading } = useFetch<VehicleType[]>('/vehicle_types');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentItem, setCurrentItem] = useState<Vehicle | Omit<Vehicle, 'id'>>(emptyVehicle);
+  const [currentItem, setCurrentItem] = useState<Vehicle | Omit<Vehicle, 'id' | 'created_at' | 'updated_at'>>(emptyVehicle);
 
   const vehicleTypeMap = useMemo(() => {
     return vehicleTypes?.reduce((acc, vt) => {
@@ -59,33 +62,25 @@ const Vehicles: React.FC = () => {
     handleCloseModal();
   };
 
-  // FIX: Switched to direct property access for all fields to ensure type safety.
-  // TypeScript was unable to correctly infer the type of `updated[name]` when using a grouped switch statement.
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setCurrentItem(prev => {
-      const updated = { ...prev };
       switch (name) {
         case 'make':
-          updated.make = value;
-          break;
+          return { ...prev, make: value };
         case 'model':
-          updated.model = value;
-          break;
+          return { ...prev, model: value };
         case 'vin':
-          updated.vin = value;
-          break;
+          return { ...prev, vin: value };
         case 'license_plate':
-          updated.license_plate = value;
-          break;
+          return { ...prev, license_plate: value };
         case 'year':
-          updated.year = parseInt(value, 10) || 0;
-          break;
+          return { ...prev, year: parseInt(value, 10) || 0 };
         case 'vehicle_type_id':
-          updated.vehicle_type_id = parseInt(value, 10) || 0;
-          break;
+          return { ...prev, vehicle_type_id: parseInt(value, 10) || 0 };
+        default:
+            return prev;
       }
-      return updated;
     });
   };
 

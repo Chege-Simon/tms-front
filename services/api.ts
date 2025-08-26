@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://2216f6871b00.ngrok-free.app/api';
+const API_BASE_URL = 'https://52b58685b304.ngrok-free.app/api';
 
 const getAuthToken = () => localStorage.getItem('authToken');
 
@@ -35,12 +35,7 @@ const request = async <T>(endpoint: string, options: RequestInit = {}): Promise<
         throw new Error(responseData.message || `HTTP error! status: ${response.status}`);
     }
     
-    // The API wraps most responses in a `data` property. We will unwrap it here.
-    // This also handles unwrapped responses (like login) by checking for the `data` property's existence.
-    if (responseData && typeof responseData === 'object' && 'data' in responseData) {
-        return responseData.data;
-    }
-    
+    // Always return the full, raw response data. Unwrapping is handled by consumer hooks.
     return responseData;
 };
 
