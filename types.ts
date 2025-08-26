@@ -19,8 +19,10 @@ export interface Customer extends BaseEntity {
 }
 
 export interface VehicleType extends BaseEntity {
+  code?: string;
   name: string;
-  description: string;
+  size?: string;
+  metadata?: string; // JSON string
 }
 
 export interface Vehicle extends BaseEntity {
