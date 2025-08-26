@@ -5,6 +5,7 @@ import Button from '../components/Button';
 import { useCrud, useFetch } from '../hooks/useCrud';
 import type { CreditNote, Customer } from '../types';
 import { EditIcon, DeleteIcon, PlusIcon } from '../components/icons';
+import { notifyWarning } from '../services/notification';
 
 const CreditNotes: React.FC = () => {
   const { items: creditNotes, deleteItem, loading, error } = useCrud<CreditNote>('/credit_notes');
@@ -22,14 +23,14 @@ const CreditNotes: React.FC = () => {
     { header: 'Invoice #', accessor: 'invoice_id' },
     { header: 'Customer', accessor: (cn) => customerMap[cn.customer_id] || 'N/A' },
     { header: 'Issue Date', accessor: 'issue_date' },
-    { header: 'Amount', accessor: (cn) => `$${cn.total_amount.toFixed(2)}` },
+    { header: 'Amount', accessor: (cn) => `KES ${cn.total_amount.toFixed(2)}` },
     { header: 'Reason', accessor: 'reason' },
   ], [customerMap]);
   
   return (
     <>
       <Header title="Credit Notes">
-        <Button onClick={() => alert('Add new credit note functionality not implemented.')}>
+        <Button onClick={() => notifyWarning('Add new credit note functionality not implemented.')}>
           <PlusIcon />
           Add Credit Note
         </Button>
@@ -41,7 +42,7 @@ const CreditNotes: React.FC = () => {
         error={error}
         renderActions={(creditNote) => (
           <>
-            <Button variant="icon" onClick={() => alert('Edit not implemented.')}><EditIcon /></Button>
+            <Button variant="icon" onClick={() => notifyWarning('Edit not implemented.')}><EditIcon /></Button>
             <Button variant="icon" onClick={() => deleteItem(creditNote.id)}><DeleteIcon /></Button>
           </>
         )}

@@ -5,6 +5,7 @@ import Button from '../components/Button';
 import { useCrud, useFetch } from '../hooks/useCrud';
 import type { Expense, Vehicle } from '../types';
 import { EditIcon, DeleteIcon, PlusIcon } from '../components/icons';
+import { notifyWarning } from '../services/notification';
 
 const Expenses: React.FC = () => {
   const { items: expenses, deleteItem, loading, error } = useCrud<Expense>('/expenses');
@@ -23,14 +24,14 @@ const Expenses: React.FC = () => {
     { header: 'Date', accessor: 'date' },
     { header: 'Vehicle', accessor: (exp) => vehicleMap[exp.vehicle_id] || 'N/A' },
     { header: 'Category', accessor: 'category' },
-    { header: 'Amount', accessor: (exp) => `$${exp.amount.toFixed(2)}` },
+    { header: 'Amount', accessor: (exp) => `KES ${exp.amount.toFixed(2)}` },
     { header: 'Description', accessor: 'description' },
   ], [vehicleMap]);
 
   return (
     <>
       <Header title="Expenses">
-        <Button onClick={() => alert('Add new expense functionality not implemented.')}>
+        <Button onClick={() => notifyWarning('Add new expense functionality not implemented.')}>
           <PlusIcon />
           Add Expense
         </Button>
@@ -42,7 +43,7 @@ const Expenses: React.FC = () => {
         error={error}
         renderActions={(expense) => (
           <>
-            <Button variant="icon" onClick={() => alert('Edit not implemented.')}><EditIcon /></Button>
+            <Button variant="icon" onClick={() => notifyWarning('Edit not implemented.')}><EditIcon /></Button>
             <Button variant="icon" onClick={() => deleteItem(expense.id)}><DeleteIcon /></Button>
           </>
         )}

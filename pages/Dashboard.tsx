@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Header from '../components/Header';
 import { TruckIcon, UsersIcon, SteeringWheelIcon, DollarSignIcon } from '../components/icons';
@@ -35,7 +36,7 @@ const Dashboard: React.FC = () => {
         <StatCard icon={<TruckIcon />} title="Total Vehicles" value={vehicles?.length ?? 0} color="bg-blue-500" loading={vehiclesLoading} />
         <StatCard icon={<UsersIcon />} title="Active Customers" value={customers?.length ?? 0} color="bg-green-500" loading={customersLoading} />
         <StatCard icon={<SteeringWheelIcon />} title="Available Drivers" value={drivers?.length ?? 0} color="bg-yellow-500" loading={driversLoading} />
-        <StatCard icon={<DollarSignIcon />} title="Total Expenses" value={`$${totalExpenses.toFixed(2)}`} color="bg-red-500" loading={expensesLoading} />
+        <StatCard icon={<DollarSignIcon />} title="Total Expenses" value={`KES ${totalExpenses.toFixed(2)}`} color="bg-red-500" loading={expensesLoading} />
       </div>
 
       <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">

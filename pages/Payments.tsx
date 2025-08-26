@@ -5,6 +5,7 @@ import Button from '../components/Button';
 import { useCrud } from '../hooks/useCrud';
 import type { Payment } from '../types';
 import { EditIcon, DeleteIcon, PlusIcon } from '../components/icons';
+import { notifyWarning } from '../services/notification';
 
 const Payments: React.FC = () => {
   const { items: payments, deleteItem, loading, error } = useCrud<Payment>('/payments');
@@ -12,14 +13,14 @@ const Payments: React.FC = () => {
   const columns: Column<Payment>[] = useMemo(() => [
     { header: 'Invoice ID', accessor: 'invoice_id' },
     { header: 'Payment Date', accessor: 'payment_date' },
-    { header: 'Amount', accessor: (p) => `$${p.amount.toFixed(2)}` },
+    { header: 'Amount', accessor: (p) => `KES ${p.amount.toFixed(2)}` },
     { header: 'Payment Method', accessor: 'payment_method' },
   ], []);
 
   return (
     <>
       <Header title="Payments">
-        <Button onClick={() => alert('Add new payment functionality not implemented.')}>
+        <Button onClick={() => notifyWarning('Add new payment functionality not implemented.')}>
           <PlusIcon />
           Add Payment
         </Button>
@@ -31,7 +32,7 @@ const Payments: React.FC = () => {
         error={error}
         renderActions={(payment) => (
           <>
-            <Button variant="icon" onClick={() => alert('Edit not implemented.')}><EditIcon /></Button>
+            <Button variant="icon" onClick={() => notifyWarning('Edit not implemented.')}><EditIcon /></Button>
             <Button variant="icon" onClick={() => deleteItem(payment.id)}><DeleteIcon /></Button>
           </>
         )}

@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import type { Invoice, InvoiceItem, Driver, RouteCharge } from '../../types';
@@ -10,6 +11,7 @@ import DataTable, { Column } from '../../components/DataTable';
 import Modal from '../../components/Modal';
 import Input from '../../components/Input';
 import Select from '../../components/Select';
+import { notifyError } from '../../services/notification';
 
 const InvoiceItemModal: React.FC<{
     isOpen: boolean;
@@ -64,7 +66,8 @@ const InvoiceItemModal: React.FC<{
             onClose();
         } catch (error) {
             console.error("Failed to save invoice item", error);
-            alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            const message = error instanceof Error ? error.message : 'Unknown error saving item.';
+            notifyError(message);
         } finally {
             setIsSaving(false);
         }
@@ -79,7 +82,7 @@ const InvoiceItemModal: React.FC<{
                 </Select>
                 <Select label="Route Charge" name="route_charge_id" value={itemData.route_charge_id} onChange={handleChange} disabled={chargesLoading} required>
                      <option value="">Select a route</option>
-                    {routeCharges?.map(rc => <option key={rc.uuid || rc.id} value={rc.uuid || rc.id}>{rc.route} - ${rc.trip_charge}</option>)}
+                    {routeCharges?.map(rc => <option key={rc.uuid || rc.id} value={rc.uuid || rc.id}>{rc.route} - KES {rc.trip_charge}</option>)}
                 </Select>
                  <Input label="Delivery Date" name="delivery_date" type="date" value={itemData.delivery_date} onChange={handleChange} required />
                  <Input label="Destination" name="destination" value={itemData.destination} onChange={handleChange} required />
@@ -116,10 +119,8 @@ const InvoiceEdit: React.FC = () => {
     };
     
     const handleDeleteItem = async (itemId: string | number) => {
-        if(window.confirm("Are you sure you want to delete this item?")) {
-            await deleteItem(itemId);
-            refetchInvoice(); // To update total amount
-        }
+        await deleteItem(itemId);
+        refetchInvoice(); // To update total amount
     };
     
     const onSaveItem = () => {
@@ -132,8 +133,8 @@ const InvoiceEdit: React.FC = () => {
         { header: 'Destination', accessor: 'destination'},
         { header: 'Driver', accessor: (item) => item.driver?.name || 'N/A' },
         { header: 'Route', accessor: (item) => item.route_charge?.route || 'N/A' },
-        { header: 'Trip Charge', accessor: (item) => `$${item.actual_trip_charge.toFixed(2)}` },
-    ], []);
+        { header: 'Trip Charge', accessor: (item) => `${invoice?.currency || 'KES'} ${item.actual_trip_charge.toFixed(2)}` },
+    ], [invoice?.currency]);
 
     if (invoiceLoading) return <div>Loading Invoice...</div>;
     if (invoiceError) return <div className="text-red-500">Error loading invoice: {invoiceError.message}</div>;

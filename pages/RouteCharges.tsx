@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Header from '../components/Header';
 import DataTable, { type Column } from '../components/DataTable';
@@ -43,10 +44,10 @@ const RouteCharges: React.FC = () => {
     { header: 'Code', accessor: 'code' },
     { header: 'Route', accessor: 'route' },
     { header: 'Vehicle Type', accessor: (rc) => rc.vehicle_type?.name || 'N/A' },
-    { header: 'Trip Charge', accessor: (rc) => `$${parseFloat(rc.trip_charge || '0').toFixed(2)}` },
-    { header: 'Driver Wage', accessor: (rc) => `$${parseFloat(rc.driver_wage || '0').toFixed(2)}` },
-    { header: 'Loading Charge', accessor: (rc) => `$${parseFloat(rc.loading_charge || '0').toFixed(2)}` },
-    { header: 'Total Charge', accessor: (rc) => `$${(parseFloat(rc.trip_charge || '0') + parseFloat(rc.driver_wage || '0') + parseFloat(rc.loading_charge || '0')).toFixed(2)}` },
+    { header: 'Trip Charge', accessor: (rc) => `KES ${parseFloat(rc.trip_charge || '0').toFixed(2)}` },
+    { header: 'Driver Wage', accessor: (rc) => `KES ${parseFloat(rc.driver_wage || '0').toFixed(2)}` },
+    { header: 'Loading Charge', accessor: (rc) => `KES ${parseFloat(rc.loading_charge || '0').toFixed(2)}` },
+    { header: 'Total Charge', accessor: (rc) => `KES ${(parseFloat(rc.trip_charge || '0') + parseFloat(rc.driver_wage || '0') + parseFloat(rc.loading_charge || '0')).toFixed(2)}` },
   ], []);
 
   const handleEdit = (routeCharge: RouteCharge) => {

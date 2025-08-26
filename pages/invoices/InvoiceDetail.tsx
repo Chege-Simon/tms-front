@@ -1,10 +1,12 @@
 
+
 import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useFetch } from '../../hooks/useCrud';
 import type { Invoice } from '../../types';
 import Button from '../../components/Button';
 import { DownloadIcon, PrintIcon, EditIcon } from '../../components/icons';
+import { notifyWarning } from '../../services/notification';
 
 const InvoiceDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -41,7 +43,7 @@ const InvoiceDetail: React.FC = () => {
                 <div className="flex items-center space-x-2">
                     <Button variant="secondary" onClick={() => navigate(`/invoices/${id}/edit`)}><EditIcon /> <span className="ml-2">Edit</span></Button>
                     <Button variant="secondary" onClick={handlePrint}><PrintIcon /> <span className="ml-2">Print</span></Button>
-                    <Button onClick={() => alert('PDF Download not implemented.')}><DownloadIcon /> <span className="ml-2">Download</span></Button>
+                    <Button onClick={() => notifyWarning('PDF Download not implemented.')}><DownloadIcon /> <span className="ml-2">Download</span></Button>
                 </div>
             </header>
             
@@ -97,7 +99,7 @@ const InvoiceDetail: React.FC = () => {
                                                 {item.route_charge && <p className="text-xs text-gray-500 dark:text-gray-400">{item.route_charge.route}</p>}
                                             </td>
                                             <td className="p-3">{item.driver?.name}</td>
-                                            <td className="p-3 text-right font-medium">${item.actual_trip_charge.toFixed(2)}</td>
+                                            <td className="p-3 text-right font-medium">{invoice.currency} {item.actual_trip_charge.toFixed(2)}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -108,7 +110,7 @@ const InvoiceDetail: React.FC = () => {
                         <div className="w-full max-w-xs space-y-2 text-sm">
                             <div className="flex justify-between font-bold text-lg text-gray-800 dark:text-white border-t pt-2 mt-2 dark:border-gray-600">
                                 <span>Order total</span>
-                                <span>{invoice.currency} ${invoice.total_amount.toFixed(2)}</span>
+                                <span>{invoice.currency} {invoice.total_amount.toFixed(2)}</span>
                             </div>
                         </div>
                     </section>
@@ -122,7 +124,7 @@ const InvoiceDetail: React.FC = () => {
                             <p className="text-sm text-gray-500 dark:text-gray-400">Invoice to:</p>
                             <p className="font-semibold text-gray-800 dark:text-white">{invoice.customer?.name}</p>
                         </div>
-                        <p className="text-4xl font-bold text-gray-800 dark:text-white">{invoice.currency} ${invoice.total_amount.toFixed(2)}</p>
+                        <p className="text-4xl font-bold text-gray-800 dark:text-white">{invoice.currency} {invoice.total_amount.toFixed(2)}</p>
                     </div>
                      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg space-y-3 text-sm">
                         <h3 className="font-semibold text-lg text-gray-800 dark:text-white">Details</h3>

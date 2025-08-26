@@ -1,6 +1,8 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 import type { BaseEntity } from '../types';
+import { notifySuccess, notifyError } from '../services/notification';
 
 interface PaginationLinks {
     first?: string;
@@ -100,18 +102,23 @@ export const useCrud = <T extends BaseEntity>(endpoint: string) => {
   const addItem = async (item: Omit<T, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       await api.post<T>(endpoint, item);
+      notifySuccess('Item added successfully.');
       await fetchItems(endpoint); // Refetch first page to get latest data
     } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to add item.';
+      notifyError(message);
       console.error("Failed to add item:", err);
-      // Optionally re-throw or handle error state
     }
   };
 
   const updateItem = async (updatedItem: T) => {
     try {
       await api.put<T>(`${endpoint}/${updatedItem.id}`, updatedItem);
+      notifySuccess('Item updated successfully.');
       await fetchItems(lastUrl); // Refetch current page
     } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to update item.';
+        notifyError(message);
         console.error("Failed to update item:", err);
     }
   };
@@ -119,8 +126,11 @@ export const useCrud = <T extends BaseEntity>(endpoint: string) => {
   const deleteItem = async (id: number | string) => {
     try {
       await api.del(`${endpoint}/${id}`);
+      notifySuccess('Item deleted successfully.');
       await fetchItems(lastUrl); // Refetch current page
     } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to delete item.';
+      notifyError(message);
       console.error("Failed to delete item:", err);
     }
   };

@@ -10,8 +10,8 @@ const Journals: React.FC = () => {
   const columns: Column<Journal>[] = useMemo(() => [
     { header: 'Date', accessor: 'date' },
     { header: 'Account', accessor: 'account' },
-    { header: 'Debit', accessor: (j) => `$${j.debit.toFixed(2)}` },
-    { header: 'Credit', accessor: (j) => `$${j.credit.toFixed(2)}` },
+    { header: 'Debit', accessor: (j) => `KES ${j.debit.toFixed(2)}` },
+    { header: 'Credit', accessor: (j) => `KES ${j.credit.toFixed(2)}` },
     { header: 'Description', accessor: 'description' },
   ], []);
 

@@ -1,4 +1,5 @@
 
+
 import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
@@ -11,6 +12,7 @@ import Modal from '../components/Modal';
 import Select from '../components/Select';
 import Input from '../components/Input';
 import api from '../services/api';
+import { notifyError } from '../services/notification';
 
 const InvoiceInitialCreateModal: React.FC<{ isOpen: boolean, onClose: () => void }> = ({ isOpen, onClose }) => {
     const navigate = useNavigate();
@@ -23,7 +25,7 @@ const InvoiceInitialCreateModal: React.FC<{ isOpen: boolean, onClose: () => void
         due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         customer_id: '',
         vehicle_id: '',
-        currency: 'USD',
+        currency: 'KES',
         total_amount: 0,
     });
 
@@ -48,6 +50,8 @@ const InvoiceInitialCreateModal: React.FC<{ isOpen: boolean, onClose: () => void
                 }
             } catch (error) {
                 console.error("Failed to fetch customers/vehicles", error);
+                const message = error instanceof Error ? error.message : "Failed to load required data.";
+                notifyError(message);
             } finally {
                 setIsLoading(false);
             }
@@ -70,7 +74,8 @@ const InvoiceInitialCreateModal: React.FC<{ isOpen: boolean, onClose: () => void
             navigate(`/invoices/${newInvoice.uuid}/edit`);
         } catch (error) {
             console.error("Failed to create invoice", error);
-            alert(`Error creating invoice: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            const message = error instanceof Error ? error.message : 'Unknown error creating invoice.';
+            notifyError(message);
         } finally {
             setIsSaving(false);
         }
@@ -92,9 +97,7 @@ const InvoiceInitialCreateModal: React.FC<{ isOpen: boolean, onClose: () => void
                         <Input label="Issue Date" id="issue_date" name="issue_date" type="date" value={formData.issue_date} onChange={handleChange} required />
                         <Input label="Due Date" id="due_date" name="due_date" type="date" value={formData.due_date} onChange={handleChange} required />
                          <Select label="Currency" id="currency" name="currency" value={formData.currency} onChange={handleChange} required>
-                            <option value="USD">United States Dollar (USD)</option>
-                            <option value="EUR">Euro (EUR)</option>
-                            <option value="GBP">British Pound (GBP)</option>
+                            <option value="KES">Kenyan Shilling (KES)</option>
                         </Select>
                     </>
                 )}
@@ -137,12 +140,6 @@ const Invoices: React.FC = () => {
     )},
   ], []);
 
-  const handleDelete = async (invoice: Invoice) => {
-    if (window.confirm(`Are you sure you want to delete invoice ${invoice.code}?`)) {
-      await deleteItem(invoice.uuid || invoice.id);
-    }
-  };
-
   return (
     <>
       <Header title="Invoices">
@@ -160,7 +157,7 @@ const Invoices: React.FC = () => {
           <>
             <Button variant="icon" title="View" onClick={() => navigate(`/invoices/${invoice.uuid || invoice.id}`)}><EyeIcon /></Button>
             <Button variant="icon" title="Edit" onClick={() => navigate(`/invoices/${invoice.uuid || invoice.id}/edit`)}><EditIcon /></Button>
-            <Button variant="icon" title="Delete" onClick={() => handleDelete(invoice)}><DeleteIcon /></Button>
+            <Button variant="icon" title="Delete" onClick={() => deleteItem(invoice.uuid || invoice.id)}><DeleteIcon /></Button>
           </>
         )}
       />
