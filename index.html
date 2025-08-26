@@ -31,22 +31,36 @@
     </script>
     <style>
       @media print {
-        body * {
-          visibility: hidden;
+        body {
+          background-color: #fff !important;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
         }
-        .print-area, .print-area * {
-          visibility: visible;
+        .no-print {
+          display: none !important;
         }
         .print-area {
+          display: block !important;
+          visibility: visible !important;
           position: absolute;
           left: 0;
           top: 0;
           width: 100%;
           margin: 0;
-          padding: 0;
+          padding: 1rem;
+          background-color: white;
+          box-shadow: none !important;
         }
-        .no-print {
-          display: none !important;
+        .print-area * {
+          visibility: visible !important;
+          color: #000 !important;
+          background-color: transparent !important;
+        }
+        body > #root > div {
+          visibility: hidden;
+        }
+        body > #root > div > .print-area {
+            visibility: visible;
         }
       }
     </style>

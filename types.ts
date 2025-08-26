@@ -59,8 +59,9 @@ export interface RouteCharge extends BaseEntity {
   metadata?: string; // JSON string
 }
 
-export interface InvoiceItem extends BaseEntity {
-  invoice_id: string;
+export interface InvoiceItem {
+  id?: number | string;
+  invoice_id?: string;
   product_name: string;
   description?: string;
   unit_price: number;
