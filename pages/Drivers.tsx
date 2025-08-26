@@ -12,14 +12,23 @@ import { useCrud, useFetch } from '../hooks/useCrud';
 import type { Driver, Vehicle } from '../types';
 import { EditIcon, DeleteIcon, PlusIcon } from '../components/icons';
 
-const emptyDriver: Omit<Driver, 'id' | 'created_at' | 'updated_at' | 'code'> = { name: '', national_id: '', phone: '', vehicle_id: '', metadata: '{}' };
+interface DriverFormData {
+  id?: string | number;
+  name: string;
+  national_id: string;
+  phone: string;
+  vehicle_id: string | number;
+  metadata?: string;
+}
+
+const emptyDriverForm: DriverFormData = { name: '', national_id: '', phone: '', vehicle_id: '', metadata: '{}' };
 
 const Drivers: React.FC = () => {
   const { items: drivers, addItem, updateItem, deleteItem, loading, error, pagination, refetch } = useCrud<Driver>('/drivers');
   const { data: vehicles, loading: vehiclesLoading } = useFetch<Vehicle[]>('/vehicles');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentItem, setCurrentItem] = useState<Driver | Omit<Driver, 'id' | 'created_at' | 'updated_at' | 'code'>>(emptyDriver);
+  const [currentItem, setCurrentItem] = useState<DriverFormData>(emptyDriverForm);
   const [searchTerm, setSearchTerm] = useState('');
 
   const debouncedRefetch = useCallback(refetch, []);
@@ -32,29 +41,28 @@ const Drivers: React.FC = () => {
     return () => clearTimeout(handler);
   }, [searchTerm, debouncedRefetch]);
 
-  const vehicleMap = useMemo(() => {
-    return vehicles?.reduce((acc, v) => {
-      // FIX: Corrected property access from 'make' to 'brand' and 'license_plate' to 'registration_number' to match the Vehicle type.
-      acc[v.id] = `${v.brand} ${v.model} (${v.registration_number})`;
-      return acc;
-    }, {} as Record<string | number, string>) || {};
-  }, [vehicles]);
-
   const columns: Column<Driver>[] = useMemo(() => [
     { header: 'Code', accessor: 'code' },
     { header: 'Name', accessor: 'name' },
     { header: 'National ID', accessor: 'national_id' },
     { header: 'Phone', accessor: 'phone' },
-    { header: 'Assigned Vehicle', accessor: (d) => vehicleMap[d.vehicle_id] || 'N/A' },
-  ], [vehicleMap]);
+    { header: 'Assigned Vehicle', accessor: (d) => d.vehicle ? `${d.vehicle.brand} ${d.vehicle.model} (${d.vehicle.registration_number})` : 'N/A' },
+  ], []);
 
   const handleEdit = (driver: Driver) => {
-    setCurrentItem(driver);
+    setCurrentItem({
+      id: driver.id,
+      name: driver.name,
+      national_id: driver.national_id,
+      phone: driver.phone,
+      vehicle_id: driver.vehicle.id,
+      metadata: driver.metadata || '{}',
+    });
     setIsModalOpen(true);
   };
 
   const handleAddNew = () => {
-    const initialDriver = { ...emptyDriver, vehicle_id: vehicles?.[0]?.id || '' };
+    const initialDriver = { ...emptyDriverForm, vehicle_id: vehicles?.[0]?.id || '' };
     setCurrentItem(initialDriver);
     setIsModalOpen(true);
   };
@@ -65,10 +73,12 @@ const Drivers: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if ('id' in currentItem) {
-      await updateItem(currentItem);
+    // The form state (currentItem) is in the shape the API expects for POST/PUT.
+    // We cast to `any` because the generic `useCrud` hook is typed against the GET response shape (`Driver`).
+    if (currentItem.id) {
+      await updateItem(currentItem as any);
     } else {
-      await addItem(currentItem as Omit<Driver, 'id'>);
+      await addItem(currentItem as any);
     }
     handleCloseModal();
   };
@@ -124,7 +134,7 @@ const Drivers: React.FC = () => {
         )}
       />
       {pagination.meta && pagination.meta.total > 0 && <PaginationControls />}
-      <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={'id' in currentItem ? 'Edit Driver' : 'Add Driver'}>
+      <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={currentItem.id ? 'Edit Driver' : 'Add Driver'}>
         <form onSubmit={handleSubmit} className="space-y-6">
           <Input label="Name" id="name" name="name" value={currentItem.name} onChange={handleChange} required />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -133,7 +143,6 @@ const Drivers: React.FC = () => {
           </div>
           <Select label="Assigned Vehicle" id="vehicle_id" name="vehicle_id" value={currentItem.vehicle_id} onChange={handleChange} required disabled={vehiclesLoading}>
             <option value="">Select a vehicle</option>
-            {/* FIX: Corrected property access from 'make' to 'brand' and 'license_plate' to 'registration_number' to match the Vehicle type. */}
             {vehicles?.map(v => <option key={v.id} value={v.id}>{v.brand} {v.model} ({v.registration_number})</option>)}
           </Select>
           <Textarea label="Metadata (JSON)" id="metadata" name="metadata" value={currentItem.metadata || ''} onChange={handleChange} rows={3} />

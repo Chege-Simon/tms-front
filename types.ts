@@ -42,7 +42,7 @@ export interface Driver extends BaseEntity {
   name: string;
   national_id: string;
   phone: string;
-  vehicle_id: string | number;
+  vehicle: Vehicle;
   metadata?: string; // JSON string
 }
 
