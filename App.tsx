@@ -36,7 +36,6 @@ const App: React.FC = () => {
                 <Route path="/drivers" element={<Drivers />} />
                 <Route path="/route-charges" element={<RouteCharges />} />
                 <Route path="/invoices" element={<Invoices />} />
-                <Route path="/invoices/new" element={<InvoiceCreate />} />
                 <Route path="/invoices/:id" element={<InvoiceDetail />} />
                 <Route path="/invoices/:id/edit" element={<InvoiceCreate />} />
                 <Route path="/credit-notes" element={<CreditNotes />} />

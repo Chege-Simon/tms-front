@@ -36,7 +36,7 @@ const InvoiceDetail: React.FC = () => {
             <header className="no-print flex justify-between items-center mb-6">
                 <div>
                     <Link to="/invoices" className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">&larr; Back to invoices</Link>
-                    <h1 className="text-2xl font-bold text-gray-800 dark:text-white mt-1">Invoice #{invoice.invoice_number}</h1>
+                    <h1 className="text-2xl font-bold text-gray-800 dark:text-white mt-1">Invoice #{invoice.code}</h1>
                 </div>
                 <div className="flex items-center space-x-2">
                     <Button variant="secondary" onClick={() => navigate(`/invoices/${id}/edit`)}><EditIcon /> <span className="ml-2">Edit</span></Button>
@@ -51,7 +51,7 @@ const InvoiceDetail: React.FC = () => {
                    <header className="flex justify-between items-start pb-8 border-b dark:border-gray-700">
                         <div>
                             <h2 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">FleetFlow</h2>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Invoice #{invoice.invoice_number}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Invoice #{invoice.code}</p>
                         </div>
                         <div className="text-right">
                             <p className="text-sm text-gray-500 dark:text-gray-400">Date: {new Date(invoice.issue_date).toLocaleDateString()}</p>
@@ -82,38 +82,34 @@ const InvoiceDetail: React.FC = () => {
                             <table className="min-w-full text-sm">
                                 <thead className="bg-gray-50 dark:bg-gray-700">
                                     <tr>
-                                        <th className="p-3 text-left font-semibold text-gray-700 dark:text-gray-200">Product Name</th>
-                                        <th className="p-3 text-right font-semibold text-gray-700 dark:text-gray-200">Price</th>
-                                        <th className="p-3 text-right font-semibold text-gray-700 dark:text-gray-200">Quantity</th>
-                                        <th className="p-3 text-right font-semibold text-gray-700 dark:text-gray-200">Discount</th>
-                                        <th className="p-3 text-right font-semibold text-gray-700 dark:text-gray-200">Total Price</th>
+                                        <th className="p-3 text-left font-semibold text-gray-700 dark:text-gray-200">Delivery Date</th>
+                                        <th className="p-3 text-left font-semibold text-gray-700 dark:text-gray-200">Destination</th>
+                                        <th className="p-3 text-left font-semibold text-gray-700 dark:text-gray-200">Driver</th>
+                                        <th className="p-3 text-right font-semibold text-gray-700 dark:text-gray-200">Trip Charge</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y dark:divide-gray-600">
-                                    {invoice.invoice_items.map(item => {
-                                        const total = item.unit_price * item.quantity * (1 - item.discount / 100);
-                                        return (
-                                        <tr key={item.id}>
+                                    {invoice.invoice_items?.map(item => (
+                                        <tr key={item.uuid || item.id}>
+                                            <td className="p-3">{new Date(item.delivery_date).toLocaleDateString()}</td>
                                             <td className="p-3">
-                                                <p className="font-medium text-gray-800 dark:text-gray-200">{item.product_name}</p>
-                                                {item.description && <p className="text-xs text-gray-500 dark:text-gray-400">{item.description}</p>}
+                                                <p className="font-medium text-gray-800 dark:text-gray-200">{item.destination}</p>
+                                                {item.route_charge && <p className="text-xs text-gray-500 dark:text-gray-400">{item.route_charge.route}</p>}
                                             </td>
-                                            <td className="p-3 text-right">${item.unit_price.toFixed(2)}</td>
-                                            <td className="p-3 text-right">{item.quantity}</td>
-                                            <td className="p-3 text-right">{item.discount}%</td>
-                                            <td className="p-3 text-right font-medium">${total.toFixed(2)}</td>
+                                            <td className="p-3">{item.driver?.name}</td>
+                                            <td className="p-3 text-right font-medium">${item.actual_trip_charge.toFixed(2)}</td>
                                         </tr>
-                                    )})}
+                                    ))}
                                 </tbody>
                             </table>
                          </div>
                     </section>
                     <section className="flex justify-end mt-8">
                         <div className="w-full max-w-xs space-y-2 text-sm">
-                            <div className="flex justify-between text-gray-600 dark:text-gray-400"><span>Subtotal</span><span>${invoice.subtotal.toFixed(2)}</span></div>
-                            <div className="flex justify-between text-gray-600 dark:text-gray-400"><span>Tax</span><span>${invoice.tax.toFixed(2)}</span></div>
-                            <div className="flex justify-between text-gray-600 dark:text-gray-400"><span>Shipping estimate</span><span>${invoice.shipping_estimate.toFixed(2)}</span></div>
-                            <div className="flex justify-between font-bold text-lg text-gray-800 dark:text-white border-t pt-2 mt-2 dark:border-gray-600"><span>Order total</span><span>${invoice.total_amount.toFixed(2)}</span></div>
+                            <div className="flex justify-between font-bold text-lg text-gray-800 dark:text-white border-t pt-2 mt-2 dark:border-gray-600">
+                                <span>Order total</span>
+                                <span>{invoice.currency} ${invoice.total_amount.toFixed(2)}</span>
+                            </div>
                         </div>
                     </section>
                 </div>
@@ -126,7 +122,7 @@ const InvoiceDetail: React.FC = () => {
                             <p className="text-sm text-gray-500 dark:text-gray-400">Invoice to:</p>
                             <p className="font-semibold text-gray-800 dark:text-white">{invoice.customer?.name}</p>
                         </div>
-                        <p className="text-4xl font-bold text-gray-800 dark:text-white">${invoice.total_amount.toFixed(2)}</p>
+                        <p className="text-4xl font-bold text-gray-800 dark:text-white">{invoice.currency} ${invoice.total_amount.toFixed(2)}</p>
                     </div>
                      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg space-y-3 text-sm">
                         <h3 className="font-semibold text-lg text-gray-800 dark:text-white">Details</h3>

@@ -1,6 +1,7 @@
 
 export interface BaseEntity {
   id: number | string;
+  uuid?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -55,30 +56,40 @@ export interface RouteCharge extends BaseEntity {
   loading_charge: string;
   vehicle_type_id: number | string;
   vehicle_type?: VehicleType;
-  // FIX: Added optional metadata property to align with its use in forms.
   metadata?: string; // JSON string
 }
 
-export interface InvoiceItem {
-  id?: number | string;
-  invoice_id?: string;
-  product_name: string;
-  description?: string;
-  unit_price: number;
-  quantity: number;
-  discount: number; // percentage
+export interface InvoiceItem extends BaseEntity {
+  code?: string;
+  invoice_id: string;
+  driver_id: string;
+  route_charge_id: string;
+  delivery_date: string;
+  destination: string;
+  actual_trip_charge: number;
+  actual_driver_charge: number;
+  actual_loading_charge: number;
+
+  // relations
+  invoice?: Invoice;
+  driver?: Driver;
+  route_charge?: RouteCharge;
 }
 
 export interface Invoice extends BaseEntity {
-  invoice_number: string;
+  code?: string;
+  invoice_number?: string;
   customer_id: string;
+  vehicle_id: string;
   issue_date: string;
   due_date: string;
   total_amount: number;
   status: 'Draft' | 'Sent' | 'Paid' | 'Overdue';
+  currency: string;
   
   customer?: Customer;
-  currency: string;
+  vehicle?: Vehicle;
+  
   payment_condition?: string;
   delivery_date?: string;
   reference?: string;
@@ -86,11 +97,11 @@ export interface Invoice extends BaseEntity {
   additional_info?: string;
   vat_applicable?: boolean;
   
-  subtotal: number;
-  tax: number;
-  shipping_estimate: number;
+  subtotal?: number;
+  tax?: number;
+  shipping_estimate?: number;
   
-  invoice_items: InvoiceItem[];
+  invoice_items?: InvoiceItem[];
 }
 
 export interface CreditNote extends BaseEntity {

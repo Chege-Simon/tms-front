@@ -1,271 +1,195 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
-import type { Customer, Invoice, InvoiceItem } from '../../types';
+import { useParams, Link } from 'react-router-dom';
+import type { Invoice, InvoiceItem, Driver, RouteCharge } from '../../types';
+import Button from '../../components/Button';
+import { DeleteIcon, PlusIcon, EditIcon } from '../../components/icons';
+import api from '../../services/api';
+import { useCrud, useFetch } from '../../hooks/useCrud';
+import DataTable, { Column } from '../../components/DataTable';
+import Modal from '../../components/Modal';
 import Input from '../../components/Input';
 import Select from '../../components/Select';
-import Textarea from '../../components/Textarea';
-import Button from '../../components/Button';
-import { DeleteIcon, PlusIcon } from '../../components/icons';
-import api from '../../services/api';
 
-const emptyItem: InvoiceItem = { product_name: '', unit_price: 0, quantity: 1, discount: 0, description: '' };
+const InvoiceItemModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    onSave: () => void;
+    invoiceId: string;
+    currentItem: Partial<InvoiceItem> | null;
+}> = ({ isOpen, onClose, onSave, invoiceId, currentItem }) => {
+    const isEditMode = currentItem && currentItem.uuid;
+    const { data: drivers, loading: driversLoading } = useFetch<Driver[]>('/drivers');
+    const { data: routeCharges, loading: chargesLoading } = useFetch<RouteCharge[]>('/route_charges');
 
-const InvoiceCreate: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const isEditMode = !!id;
-
-  const [invoice, setInvoice] = useState<Partial<Invoice>>({
-    invoice_number: `FWR-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-    customer_id: '',
-    currency: 'USD',
-    payment_condition: 'net_30',
-    issue_date: new Date().toISOString().split('T')[0],
-    due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    delivery_date: '',
-    reference: '',
-    object: '',
-    additional_info: '',
-    vat_applicable: false,
-    status: 'Draft',
-  });
-  const [items, setItems] = useState<InvoiceItem[]>([
-    { product_name: 'Flowbite Developer Edition', description: 'HTML, JS, Figma', unit_price: 269, quantity: 2, discount: 50 },
-    { product_name: 'Flowbite Designer Edition', description: 'Figma Design System', unit_price: 149, quantity: 3, discount: 0 },
-  ]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  
-  const fetchCustomers = useCallback(async () => {
-    try {
-        const response: any = await api.get('/customers');
-        const customerData = response?.data?.data || response.data || response || [];
-        setCustomers(customerData);
-        if (!isEditMode && customerData.length > 0) {
-            setInvoice(prev => ({ ...prev, customer_id: customerData[0].id }));
-        }
-    } catch (error) {
-        console.error("Failed to fetch customers", error);
-    }
-  }, [isEditMode]);
-
-  const fetchInvoice = useCallback(async (invoiceId: string) => {
-    try {
-        const invoiceData: any = await api.get(`/invoices/${invoiceId}`);
-        const fetchedInvoice = invoiceData.data || invoiceData;
-        setInvoice({
-            ...fetchedInvoice,
-            issue_date: fetchedInvoice.issue_date?.split('T')[0] || '',
-            due_date: fetchedInvoice.due_date?.split('T')[0] || '',
-            delivery_date: fetchedInvoice.delivery_date ? fetchedInvoice.delivery_date.split('T')[0] : '',
-        });
-        setItems(fetchedInvoice.invoice_items || []);
-    } catch (error) {
-        console.error("Failed to fetch invoice", error);
-    }
-  }, []);
-
-  useEffect(() => {
-    const loadInitialData = async () => {
-        setLoading(true);
-        await fetchCustomers();
-        if (isEditMode) {
-            await fetchInvoice(id);
-        }
-        setLoading(false);
-    }
-    loadInitialData();
-  }, [id, isEditMode, fetchCustomers, fetchInvoice]);
-  
-  const handleInvoiceChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    const isCheckbox = type === 'checkbox';
-    const val = isCheckbox ? (e.target as HTMLInputElement).checked : value;
-    setInvoice(prev => ({ ...prev, [name]: val }));
-  };
-
-  const handleItemChange = (index: number, field: keyof InvoiceItem, value: string | number) => {
-    const newItems = [...items];
-    const itemToUpdate = { ...newItems[index] };
-    
-    if (field === 'unit_price' || field === 'quantity' || field === 'discount') {
-      (itemToUpdate as any)[field] = parseFloat(value as string) || 0;
-    } else {
-      (itemToUpdate as any)[field] = value;
-    }
-
-    newItems[index] = itemToUpdate;
-    setItems(newItems);
-  };
-
-  const handleAddItem = () => {
-    setItems(prev => [...prev, { ...emptyItem, id: `new-${Date.now()}` }]);
-  };
-
-  const handleRemoveItem = (index: number) => {
-    setItems(prev => prev.filter((_, i) => i !== index));
-  };
-  
-  const { subtotal, tax, shipping, total } = useMemo(() => {
-    const sub = items.reduce((acc, item) => {
-        const itemPrice = Number(item.unit_price) || 0;
-        const itemQty = Number(item.quantity) || 0;
-        const itemDiscount = Number(item.discount) || 0;
-        const itemTotal = itemPrice * itemQty * (1 - itemDiscount / 100);
-        return acc + itemTotal;
-    }, 0);
-    
-    // Using hardcoded tax and shipping for demo as they are not form fields
-    const taxAmount = 477; // Example value from mockup
-    const shippingAmount = 0; // Example value from mockup
-    
-    const grandTotal = sub + taxAmount + shippingAmount;
-
-    return { subtotal: sub, tax: taxAmount, shipping: shippingAmount, total: grandTotal };
-  }, [items]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!invoice.customer_id) {
-        alert("Please select a customer.");
-        return;
-    }
-    setSaving(true);
-    const finalInvoiceData = {
-        ...invoice,
-        subtotal,
-        tax,
-        shipping_estimate: shipping,
-        total_amount: total,
-        invoice_items: items.map(({id, ...rest}) => rest), // API shouldn't receive temporary client-side IDs
+    const emptyItem: Omit<InvoiceItem, 'id' | 'uuid' | 'created_at' | 'updated_at' | 'invoice_id' | 'code'> = {
+        driver_id: '',
+        route_charge_id: '',
+        delivery_date: new Date().toISOString().split('T')[0],
+        destination: '',
+        actual_trip_charge: 0,
+        actual_driver_charge: 0,
+        actual_loading_charge: 0,
     };
 
-    try {
-        if(isEditMode) {
-            await api.put(`/invoices/${id}`, finalInvoiceData);
+    const [itemData, setItemData] = useState(emptyItem);
+    const [isSaving, setIsSaving] = useState(false);
+
+    useEffect(() => {
+        if (currentItem) {
+            setItemData({
+                ...emptyItem,
+                ...currentItem,
+                delivery_date: currentItem.delivery_date ? new Date(currentItem.delivery_date).toISOString().split('T')[0] : emptyItem.delivery_date,
+            });
         } else {
-            await api.post('/invoices', finalInvoiceData);
+            setItemData(emptyItem);
         }
-        navigate('/invoices');
-    } catch(err) {
-        console.error("Failed to save invoice:", err);
-        alert(`Error: ${err instanceof Error ? err.message : 'An unknown error occurred'}`);
-    } finally {
-        setSaving(false);
-    }
-  };
+    }, [currentItem, isOpen]);
 
-  if(loading) {
-    return <div className="text-center p-8">Loading form...</div>;
-  }
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        const isNumeric = ['actual_trip_charge', 'actual_driver_charge', 'actual_loading_charge'].includes(name);
+        setItemData(prev => ({ ...prev, [name]: isNumeric ? parseFloat(value) || 0 : value }));
+    };
 
-  return (
-    <form onSubmit={handleSubmit}>
-        <div className="flex justify-between items-center mb-6">
-             <div>
-                <Link to="/invoices" className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">&larr; Back to invoices</Link>
-                <h1 className="text-2xl font-bold text-gray-800 dark:text-white mt-1">{isEditMode ? 'Edit Invoice' : 'New Invoice'}</h1>
-            </div>
-            <div className="flex items-center space-x-2">
-                 <Button type="button" variant="secondary" onClick={() => navigate('/invoices')}>Cancel</Button>
-                 <Button type="submit" disabled={saving}>{saving ? 'Saving...' : 'Save Invoice'}</Button>
-            </div>
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md space-y-8">
-            {/* Top section: Invoice #, Customer, etc. */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Input label="Invoice Number*" id="invoice_number" name="invoice_number" value={invoice.invoice_number || ''} onChange={handleInvoiceChange} required />
-                <Select label="Customer*" id="customer_id" name="customer_id" value={invoice.customer_id || ''} onChange={handleInvoiceChange} required>
-                    <option value="" disabled>Select customer</option>
-                    {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSaving(true);
+        try {
+            const url = isEditMode ? `/invoice-items/${currentItem?.uuid}` : `/invoices/${invoiceId}/items`;
+            const method = isEditMode ? 'put' : 'post';
+            await api[method](url, itemData);
+            onSave();
+            onClose();
+        } catch (error) {
+            console.error("Failed to save invoice item", error);
+            alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+    
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title={isEditMode ? "Edit Invoice Item" : "Add Invoice Item"}>
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <Select label="Driver" name="driver_id" value={itemData.driver_id} onChange={handleChange} disabled={driversLoading} required>
+                    <option value="">Select a driver</option>
+                    {drivers?.map(d => <option key={d.uuid || d.id} value={d.uuid || d.id}>{d.name}</option>)}
                 </Select>
-            </div>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Select label="Payment Condition" id="payment_condition" name="payment_condition" value={invoice.payment_condition || 'net_30'} onChange={handleInvoiceChange}>
-                    <option value="net_15">Net 15 days</option>
-                    <option value="net_30">Net 30 days</option>
-                    <option value="net_60">Net 60 days</option>
-                    <option value="due_on_receipt">Due on receipt</option>
+                <Select label="Route Charge" name="route_charge_id" value={itemData.route_charge_id} onChange={handleChange} disabled={chargesLoading} required>
+                     <option value="">Select a route</option>
+                    {routeCharges?.map(rc => <option key={rc.uuid || rc.id} value={rc.uuid || rc.id}>{rc.route} - ${rc.trip_charge}</option>)}
                 </Select>
-                 <Select label="Currency" id="currency" name="currency" value={invoice.currency || 'USD'} onChange={handleInvoiceChange}>
-                    <option value="USD">United States Dollar (USD)</option>
-                    <option value="EUR">Euro (EUR)</option>
-                    <option value="GBP">British Pound (GBP)</option>
-                </Select>
-            </div>
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Input label="Issue Date*" type="date" id="issue_date" name="issue_date" value={invoice.issue_date || ''} onChange={handleInvoiceChange} required/>
-                <Input label="Due Date*" type="date" id="due_date" name="due_date" value={invoice.due_date || ''} onChange={handleInvoiceChange} required/>
-                <Input label="Delivery Date" type="date" id="delivery_date" name="delivery_date" value={invoice.delivery_date || ''} onChange={handleInvoiceChange} />
-                <Input label="Reference of the invoice" id="reference" name="reference" placeholder="Invoice number" value={invoice.reference || ''} onChange={handleInvoiceChange} />
-            </div>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Input label="Object" id="object" name="object" placeholder="Payment terms" value={invoice.object || ''} onChange={handleInvoiceChange} />
-                <Textarea label="Additional info" id="additional_info" name="additional_info" placeholder="Receipt info (optional)" value={invoice.additional_info || ''} onChange={handleInvoiceChange} rows={1} />
-            </div>
+                 <Input label="Delivery Date" name="delivery_date" type="date" value={itemData.delivery_date} onChange={handleChange} required />
+                 <Input label="Destination" name="destination" value={itemData.destination} onChange={handleChange} required />
+                 <Input label="Trip Charge" name="actual_trip_charge" type="number" step="0.01" value={itemData.actual_trip_charge} onChange={handleChange} required />
+                 <Input label="Driver Charge" name="actual_driver_charge" type="number" step="0.01" value={itemData.actual_driver_charge} onChange={handleChange} required />
+                 <Input label="Loading Charge" name="actual_loading_charge" type="number" step="0.01" value={itemData.actual_loading_charge} onChange={handleChange} required />
 
-            <div className="flex items-center">
-                 <input id="vat_applicable" name="vat_applicable" type="checkbox" checked={invoice.vat_applicable || false} onChange={handleInvoiceChange} className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
-                 <label htmlFor="vat_applicable" className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">VAT Applicable</label>
-            </div>
+                <div className="flex justify-end pt-4 space-x-2 border-t dark:border-gray-700">
+                    <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+                    <Button type="submit" disabled={isSaving}>{isSaving ? 'Saving...' : 'Save'}</Button>
+                </div>
+            </form>
+        </Modal>
+    );
+};
 
-            {/* Items Table */}
-            <div>
-                 <div className="overflow-x-auto rounded-lg border dark:border-gray-700">
-                    <table className="min-w-full text-sm">
-                        <thead className="bg-gray-50 dark:bg-gray-700/50">
-                            <tr>
-                                <th className="p-3 text-left font-semibold text-gray-600 dark:text-gray-300 w-2/5">Product Name</th>
-                                <th className="p-3 text-left font-semibold text-gray-600 dark:text-gray-300">Price</th>
-                                <th className="p-3 text-left font-semibold text-gray-600 dark:text-gray-300">Quantity</th>
-                                <th className="p-3 text-left font-semibold text-gray-600 dark:text-gray-300">Discount</th>
-                                <th className="p-3 text-right font-semibold text-gray-600 dark:text-gray-300">Total Price</th>
-                                <th className="p-3 text-center font-semibold text-gray-600 dark:text-gray-300"></th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y dark:divide-gray-700">
-                            {items.map((item, index) => {
-                                const total = item.unit_price * item.quantity * (1 - item.discount / 100);
-                                return (
-                                <tr key={item.id || index}>
-                                    <td className="p-2">
-                                        <input type="text" placeholder="Product name" value={item.product_name} onChange={e => handleItemChange(index, 'product_name', e.target.value)} className="w-full bg-transparent p-1 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-1 focus:ring-indigo-500" />
-                                    </td>
-                                    <td className="p-2"><input type="number" placeholder="Price" value={item.unit_price} onChange={e => handleItemChange(index, 'unit_price', e.target.value)} className="w-24 bg-transparent p-1 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-1 focus:ring-indigo-500" /></td>
-                                    <td className="p-2"><input type="number" placeholder="Qty" value={item.quantity} onChange={e => handleItemChange(index, 'quantity', e.target.value)} className="w-20 bg-transparent p-1 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-1 focus:ring-indigo-500" /></td>
-                                    <td className="p-2"><input type="number" placeholder="%" value={item.discount} onChange={e => handleItemChange(index, 'discount', e.target.value)} className="w-20 bg-transparent p-1 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-1 focus:ring-indigo-500" /></td>
-                                    <td className="p-3 text-right font-medium text-gray-800 dark:text-gray-200">${total.toFixed(2)}</td>
-                                    <td className="p-3 text-center">
-                                        <Button variant="icon" type="button" onClick={() => handleRemoveItem(index)}><DeleteIcon /></Button>
-                                    </td>
-                                </tr>
-                            )})}
-                        </tbody>
-                    </table>
-                 </div>
-                 <Button type="button" variant="secondary" onClick={handleAddItem} className="mt-4"><PlusIcon /> Add new product</Button>
-            </div>
-            
-            {/* Order Summary */}
-            <div className="flex justify-end">
-                <div className="w-full max-w-sm space-y-3">
-                    <h3 className="text-xl font-semibold">Order summary</h3>
-                    <div className="space-y-1 text-gray-600 dark:text-gray-300">
-                        <div className="flex justify-between"><span>Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
-                        <div className="flex justify-between"><span>Tax</span><span>${tax.toFixed(2)}</span></div>
-                        <div className="flex justify-between"><span>Shipping estimate</span><span>${shipping.toFixed(2)}</span></div>
-                    </div>
-                    <div className="flex justify-between font-bold text-lg text-gray-800 dark:text-white border-t pt-2 mt-2 dark:border-gray-600">
-                        <span>Order total</span>
-                        <span>${total.toFixed(2)}</span>
-                    </div>
+
+const InvoiceEdit: React.FC = () => {
+    const { id } = useParams<{ id: string }>();
+    const { data: invoice, loading: invoiceLoading, error: invoiceError, refetch: refetchInvoice } = useFetch<Invoice>(`/invoices/${id}`);
+    const { items: invoiceItems, loading: itemsLoading, error: itemsError, deleteItem, refetch: refetchItems } = useCrud<InvoiceItem>(`/invoice-items?invoice_id=${id}`);
+
+    const [isItemModalOpen, setIsItemModalOpen] = useState(false);
+    const [currentItem, setCurrentItem] = useState<Partial<InvoiceItem> | null>(null);
+
+    const handleAddItem = () => {
+        setCurrentItem(null);
+        setIsItemModalOpen(true);
+    };
+
+    const handleEditItem = (item: InvoiceItem) => {
+        setCurrentItem(item);
+        setIsItemModalOpen(true);
+    };
+    
+    const handleDeleteItem = async (itemId: string | number) => {
+        if(window.confirm("Are you sure you want to delete this item?")) {
+            await deleteItem(itemId);
+            refetchInvoice(); // To update total amount
+        }
+    };
+    
+    const onSaveItem = () => {
+        refetchItems();
+        refetchInvoice(); // To update total amount
+    };
+
+    const columns = useMemo((): Column<InvoiceItem>[] => [
+        { header: 'Date', accessor: (item) => new Date(item.delivery_date).toLocaleDateString() },
+        { header: 'Destination', accessor: 'destination'},
+        { header: 'Driver', accessor: (item) => item.driver?.name || 'N/A' },
+        { header: 'Route', accessor: (item) => item.route_charge?.route || 'N/A' },
+        { header: 'Trip Charge', accessor: (item) => `$${item.actual_trip_charge.toFixed(2)}` },
+    ], []);
+
+    if (invoiceLoading) return <div>Loading Invoice...</div>;
+    if (invoiceError) return <div className="text-red-500">Error loading invoice: {invoiceError.message}</div>;
+    if (!invoice) return <div>Invoice not found.</div>;
+    
+    return (
+        <>
+            <div className="flex justify-between items-center mb-6">
+                 <div>
+                    <Link to="/invoices" className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">&larr; Back to invoices</Link>
+                    <h1 className="text-2xl font-bold text-gray-800 dark:text-white mt-1">Edit Invoice {invoice.code}</h1>
                 </div>
             </div>
-        </div>
-    </form>
-  )
-}
 
-export default InvoiceCreate;
+            {/* Invoice Header Details */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8">
+                <h2 className="text-lg font-semibold mb-4 border-b pb-2 dark:border-gray-700">Invoice Summary</h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div><strong className="block text-gray-500">Customer:</strong> {invoice.customer?.name}</div>
+                    <div><strong className="block text-gray-500">Vehicle:</strong> {invoice.vehicle?.brand} ({invoice.vehicle?.registration_number})</div>
+                    <div><strong className="block text-gray-500">Issue Date:</strong> {new Date(invoice.issue_date).toLocaleDateString()}</div>
+                    <div><strong className="block text-gray-500">Due Date:</strong> {new Date(invoice.due_date).toLocaleDateString()}</div>
+                    <div><strong className="block text-gray-500">Status:</strong> {invoice.status}</div>
+                    <div><strong className="block text-gray-500">Total Amount:</strong> <span className="font-bold text-base">{invoice.currency} {invoice.total_amount.toFixed(2)}</span></div>
+                </div>
+            </div>
+
+            {/* Invoice Items Section */}
+             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                 <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-semibold">Invoice Items</h2>
+                    <Button onClick={handleAddItem}><PlusIcon/> Add Item</Button>
+                </div>
+                <DataTable 
+                    columns={columns}
+                    data={invoiceItems}
+                    isLoading={itemsLoading}
+                    error={itemsError}
+                    renderActions={(item) => (
+                        <>
+                             <Button variant="icon" onClick={() => handleEditItem(item)}><EditIcon/></Button>
+                             <Button variant="icon" onClick={() => handleDeleteItem(item.uuid || item.id)}><DeleteIcon/></Button>
+                        </>
+                    )}
+                />
+            </div>
+            
+            <InvoiceItemModal
+                isOpen={isItemModalOpen}
+                onClose={() => setIsItemModalOpen(false)}
+                onSave={onSaveItem}
+                invoiceId={id!}
+                currentItem={currentItem}
+            />
+        </>
+    );
+};
+
+export default InvoiceEdit;
