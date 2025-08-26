@@ -2,23 +2,28 @@
 
 import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useFetch } from '../../hooks/useCrud';
-import type { Invoice } from '../../types';
+import { useCrud, useFetch } from '../../hooks/useCrud';
+import type { Invoice, InvoiceItem } from '../../types';
 import Button from '../../components/Button';
 import { DownloadIcon, PrintIcon, EditIcon } from '../../components/icons';
 import { notifyWarning } from '../../services/notification';
 
 const InvoiceDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
-    const { data: invoice, loading, error } = useFetch<Invoice>(`/invoices/${id}`);
     const navigate = useNavigate();
+    
+    const { data: invoice, loading: invoiceLoading, error: invoiceError } = useFetch<Invoice>(`/invoices/${id}`);
+    const { items: invoiceItems, loading: itemsLoading, error: itemsError } = useCrud<InvoiceItem>(`/invoice_items?invoice_id=${id}`);
 
     const handlePrint = () => {
         window.print();
     };
 
-    if (loading) return <div className="text-center p-8">Loading invoice...</div>;
-    if (error) return <div className="text-center p-8 text-red-500">Error: {error.message}</div>;
+    if (invoiceLoading || itemsLoading) return <div className="text-center p-8">Loading invoice...</div>;
+    
+    const combinedError = invoiceError || itemsError;
+    if (combinedError) return <div className="text-center p-8 text-red-500">Error: {combinedError.message}</div>;
+    
     if (!invoice) return <div className="text-center p-8">Invoice not found.</div>;
     
     const getStatusChip = (status: Invoice['status']) => {
@@ -91,7 +96,7 @@ const InvoiceDetail: React.FC = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y dark:divide-gray-600">
-                                    {invoice.invoice_items?.map(item => (
+                                    {invoiceItems?.map(item => (
                                         <tr key={item.uuid || item.id}>
                                             <td className="p-3">{new Date(item.delivery_date).toLocaleDateString()}</td>
                                             <td className="p-3">

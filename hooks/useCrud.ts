@@ -149,15 +149,15 @@ export const useFetch = <T,>(endpoint: string) => {
         try {
             const responseData: any = await api.get(endpoint);
             
-            // New paginated structure: { data: { data: [...] } }
-            if (responseData && responseData.data && responseData.data.data && Array.isArray(responseData.data.data)) {
+            // Case for paginated list: { data: { data: [...] } }
+            if (responseData?.data?.data && Array.isArray(responseData.data.data)) {
                 setData(responseData.data.data as T);
             }
-            // Old paginated structure: { data: [...] }
-            else if (responseData && typeof responseData === 'object' && 'data' in responseData && Array.isArray(responseData.data)) {
+            // Case for single item: { data: { ... } } OR list: { data: [...] }
+            else if (responseData?.data) {
                 setData(responseData.data as T);
             } 
-            // Simple response (array or object)
+            // Case for direct response: { ... } or [...]
             else {
                 setData(responseData as T);
             }

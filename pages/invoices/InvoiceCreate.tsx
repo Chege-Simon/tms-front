@@ -59,7 +59,7 @@ const InvoiceItemModal: React.FC<{
         e.preventDefault();
         setIsSaving(true);
         try {
-            const url = isEditMode ? `/invoice-items/${currentItem?.uuid}` : `/invoices/${invoiceId}/items`;
+            const url = isEditMode ? `/invoice_items/${currentItem?.uuid}` : `/invoices/${invoiceId}/invoice_items`;
             const method = isEditMode ? 'put' : 'post';
             await api[method](url, itemData);
             onSave();
@@ -103,7 +103,7 @@ const InvoiceItemModal: React.FC<{
 const InvoiceEdit: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const { data: invoice, loading: invoiceLoading, error: invoiceError, refetch: refetchInvoice } = useFetch<Invoice>(`/invoices/${id}`);
-    const { items: invoiceItems, loading: itemsLoading, error: itemsError, deleteItem, refetch: refetchItems } = useCrud<InvoiceItem>(`/invoice-items?invoice_id=${id}`);
+    const { items: invoiceItems, loading: itemsLoading, error: itemsError, deleteItem, refetch: refetchItems } = useCrud<InvoiceItem>(`/invoice_items?invoice_id=${id}`);
 
     const [isItemModalOpen, setIsItemModalOpen] = useState(false);
     const [currentItem, setCurrentItem] = useState<Partial<InvoiceItem> | null>(null);
@@ -119,7 +119,10 @@ const InvoiceEdit: React.FC = () => {
     };
     
     const handleDeleteItem = async (itemId: string | number) => {
-        await deleteItem(itemId);
+        // useCrud hook for invoice_items endpoint has its own delete function
+        const itemCrud = useCrud<InvoiceItem>('/invoice_items');
+        await itemCrud.deleteItem(itemId);
+        refetchItems();
         refetchInvoice(); // To update total amount
     };
     
