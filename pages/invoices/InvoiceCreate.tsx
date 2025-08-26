@@ -51,8 +51,33 @@ const InvoiceItemModal: React.FC<{
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        const isNumeric = ['actual_trip_charge', 'actual_driver_charge', 'actual_loading_charge'].includes(name);
-        setItemData(prev => ({ ...prev, [name]: isNumeric ? parseFloat(value) || 0 : value }));
+
+        if (name === 'route_charge_id') {
+            const selectedCharge = routeCharges?.find(rc => (rc.uuid || rc.id) === value);
+            if (selectedCharge) {
+                setItemData(prev => ({
+                    ...prev,
+                    route_charge_id: value,
+                    destination: selectedCharge.route,
+                    actual_trip_charge: parseFloat(selectedCharge.trip_charge) || 0,
+                    actual_driver_charge: parseFloat(selectedCharge.driver_wage) || 0,
+                    actual_loading_charge: parseFloat(selectedCharge.loading_charge) || 0,
+                }));
+            } else {
+                // Reset if "Select a route" is chosen
+                setItemData(prev => ({
+                    ...prev,
+                    route_charge_id: '',
+                    destination: '',
+                    actual_trip_charge: 0,
+                    actual_driver_charge: 0,
+                    actual_loading_charge: 0,
+                }));
+            }
+        } else {
+            const isNumeric = ['actual_trip_charge', 'actual_driver_charge', 'actual_loading_charge'].includes(name);
+            setItemData(prev => ({ ...prev, [name]: isNumeric ? parseFloat(value) || 0 : value }));
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -75,22 +100,23 @@ const InvoiceItemModal: React.FC<{
     
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={isEditMode ? "Edit Invoice Item" : "Add Invoice Item"}>
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <Select label="Driver" name="driver_id" value={itemData.driver_id} onChange={handleChange} disabled={driversLoading} required>
-                    <option value="">Select a driver</option>
-                    {drivers?.map(d => <option key={d.uuid || d.id} value={d.uuid || d.id}>{d.name}</option>)}
-                </Select>
-                <Select label="Route Charge" name="route_charge_id" value={itemData.route_charge_id} onChange={handleChange} disabled={chargesLoading} required>
-                     <option value="">Select a route</option>
-                    {routeCharges?.map(rc => <option key={rc.uuid || rc.id} value={rc.uuid || rc.id}>{rc.route} - KES {rc.trip_charge}</option>)}
-                </Select>
-                 <Input label="Delivery Date" name="delivery_date" type="date" value={itemData.delivery_date} onChange={handleChange} required />
-                 <Input label="Destination" name="destination" value={itemData.destination} onChange={handleChange} required />
-                 <Input label="Trip Charge" name="actual_trip_charge" type="number" step="0.01" value={itemData.actual_trip_charge} onChange={handleChange} required />
-                 <Input label="Driver Charge" name="actual_driver_charge" type="number" step="0.01" value={itemData.actual_driver_charge} onChange={handleChange} required />
-                 <Input label="Loading Charge" name="actual_loading_charge" type="number" step="0.01" value={itemData.actual_loading_charge} onChange={handleChange} required />
-
-                <div className="flex justify-end pt-4 space-x-2 border-t dark:border-gray-700">
+            <form onSubmit={handleSubmit}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Select label="Driver" name="driver_id" value={itemData.driver_id} onChange={handleChange} disabled={driversLoading} required>
+                        <option value="">Select a driver</option>
+                        {drivers?.map(d => <option key={d.uuid || d.id} value={d.uuid || d.id}>{d.name}</option>)}
+                    </Select>
+                    <Select label="Route Charge" name="route_charge_id" value={itemData.route_charge_id} onChange={handleChange} disabled={chargesLoading} required>
+                         <option value="">Select a route</option>
+                        {routeCharges?.map(rc => <option key={rc.uuid || rc.id} value={rc.uuid || rc.id}>{rc.route} - KES {rc.trip_charge}</option>)}
+                    </Select>
+                     <Input label="Delivery Date" name="delivery_date" type="date" value={itemData.delivery_date} onChange={handleChange} required />
+                     <Input label="Destination" name="destination" value={itemData.destination} onChange={handleChange} required />
+                     <Input label="Trip Charge" name="actual_trip_charge" type="number" step="0.01" value={itemData.actual_trip_charge} onChange={handleChange} required />
+                     <Input label="Driver Charge" name="actual_driver_charge" type="number" step="0.01" value={itemData.actual_driver_charge} onChange={handleChange} required />
+                     <Input label="Loading Charge" name="actual_loading_charge" type="number" step="0.01" value={itemData.actual_loading_charge} onChange={handleChange} required />
+                </div>
+                <div className="flex justify-end pt-6 mt-4 space-x-2 border-t dark:border-gray-700">
                     <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
                     <Button type="submit" disabled={isSaving}>{isSaving ? 'Saving...' : 'Save'}</Button>
                 </div>
