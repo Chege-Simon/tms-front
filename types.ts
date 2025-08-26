@@ -49,7 +49,9 @@ export interface Driver extends BaseEntity {
 export interface RouteCharge extends BaseEntity {
   code?: string;
   route: string;
-  charge: number;
+  trip_charge: number;
+  driver_wage: number;
+  loading_charge: number;
   vehicle_type_id: number | string;
   metadata?: string; // JSON string
   vehicle_type?: VehicleType;

@@ -11,17 +11,17 @@ import { useCrud, useFetch } from '../hooks/useCrud';
 import type { RouteCharge, VehicleType } from '../types';
 import { EditIcon, DeleteIcon, PlusIcon } from '../components/icons';
 
-// This interface defines the shape of the data for the form,
-// which is slightly different from the data received from the API (which has a nested vehicle_type object).
 interface RouteChargeFormData {
   id?: string | number;
   route: string;
   vehicle_type_id: string | number;
-  charge: number;
+  trip_charge: number;
+  driver_wage: number;
+  loading_charge: number;
   metadata?: string;
 }
 
-const emptyRouteChargeForm: Omit<RouteChargeFormData, 'id'> = { route: '', vehicle_type_id: '', charge: 0, metadata: '{}' };
+const emptyRouteChargeForm: Omit<RouteChargeFormData, 'id'> = { route: '', vehicle_type_id: '', trip_charge: 0, driver_wage: 0, loading_charge: 0, metadata: '{}' };
 
 const RouteCharges: React.FC = () => {
   const { items: routeCharges, addItem, updateItem, deleteItem, loading, error, pagination, refetch } = useCrud<RouteCharge>('/route_charges');
@@ -45,15 +45,19 @@ const RouteCharges: React.FC = () => {
     { header: 'Code', accessor: 'code' },
     { header: 'Route', accessor: 'route' },
     { header: 'Vehicle Type', accessor: (rc) => rc.vehicle_type?.name || 'N/A' },
-    { header: 'Charge', accessor: (rc) => `$${rc.charge.toFixed(2)}` },
+    { header: 'Trip Charge', accessor: (rc) => `$${rc.trip_charge.toFixed(2)}` },
+    { header: 'Driver Wage', accessor: (rc) => `$${rc.driver_wage.toFixed(2)}` },
+    { header: 'Loading Charge', accessor: (rc) => `$${rc.loading_charge.toFixed(2)}` },
+    { header: 'Total Charge', accessor: (rc) => `$${(rc.trip_charge + rc.driver_wage + rc.loading_charge).toFixed(2)}` },
   ], []);
 
   const handleEdit = (routeCharge: RouteCharge) => {
     setCurrentItem({
       id: routeCharge.id,
       route: routeCharge.route,
-      charge: routeCharge.charge,
-      // Use the id from the nested object if available, otherwise use the direct id
+      trip_charge: routeCharge.trip_charge,
+      driver_wage: routeCharge.driver_wage,
+      loading_charge: routeCharge.loading_charge,
       vehicle_type_id: routeCharge.vehicle_type?.id || routeCharge.vehicle_type_id,
       metadata: routeCharge.metadata || '{}',
     });
@@ -61,7 +65,6 @@ const RouteCharges: React.FC = () => {
   };
 
   const handleAddNew = () => {
-    // Pre-select the first vehicle type if available
     const initialItem = { ...emptyRouteChargeForm, vehicle_type_id: vehicleTypes?.[0]?.id || '' };
     setCurrentItem(initialItem);
     setIsModalOpen(true);
@@ -74,8 +77,6 @@ const RouteCharges: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (currentItem.id) {
-      // The API expects a flat object for updates, so we send our form state `currentItem`.
-      // We cast to `any` because `updateItem` is typed against the GET response shape.
       await updateItem(currentItem as any);
     } else {
       await addItem(currentItem as any);
@@ -85,9 +86,10 @@ const RouteCharges: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    const numericFields = ['trip_charge', 'driver_wage', 'loading_charge'];
     setCurrentItem(prev => ({
       ...prev,
-      [name]: name === 'charge' ? parseFloat(value) || 0 : value,
+      [name]: numericFields.includes(name) ? parseFloat(value) || 0 : value,
     }));
   };
   
@@ -139,13 +141,17 @@ const RouteCharges: React.FC = () => {
       {pagination.meta && pagination.meta.total > 0 && <PaginationControls />}
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={currentItem.id ? 'Edit Route Charge' : 'Add Route Charge'}>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <Input label="Route" id="route" name="route" value={currentItem.route} onChange={handleChange} required />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <Input label="Route" id="route" name="route" value={currentItem.route} onChange={handleChange} required />
             <Select label="Vehicle Type" id="vehicle_type_id" name="vehicle_type_id" value={currentItem.vehicle_type_id} onChange={handleChange} required disabled={vehicleTypesLoading}>
                 <option value="">Select a type</option>
                 {vehicleTypes?.map(vt => <option key={vt.id} value={vt.id}>{vt.name}</option>)}
             </Select>
-            <Input label="Charge" id="charge" name="charge" type="number" step="0.01" value={currentItem.charge} onChange={handleChange} required />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <Input label="Trip Charge" id="trip_charge" name="trip_charge" type="number" step="0.01" value={currentItem.trip_charge} onChange={handleChange} required />
+            <Input label="Driver Wage" id="driver_wage" name="driver_wage" type="number" step="0.01" value={currentItem.driver_wage} onChange={handleChange} required />
+            <Input label="Loading Charge" id="loading_charge" name="loading_charge" type="number" step="0.01" value={currentItem.loading_charge} onChange={handleChange} required />
           </div>
           <Textarea label="Metadata (JSON)" id="metadata" name="metadata" value={currentItem.metadata || ''} onChange={handleChange} rows={3} />
           <div className="flex justify-end pt-6 space-x-2 border-t border-gray-200 dark:border-gray-700">
