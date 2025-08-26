@@ -35,10 +35,12 @@ export interface Vehicle extends BaseEntity {
 }
 
 export interface Driver extends BaseEntity {
+  code?: string;
   name: string;
-  license_number: string;
+  national_id: string;
   phone: string;
-  email: string;
+  vehicle_id: string | number;
+  metadata?: string; // JSON string
 }
 
 export interface RouteCharge extends BaseEntity {
