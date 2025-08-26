@@ -6,7 +6,6 @@ import Button from '../components/Button';
 import Modal from '../components/Modal';
 import Input from '../components/Input';
 import Select from '../components/Select';
-import Textarea from '../components/Textarea';
 import { useCrud, useFetch } from '../hooks/useCrud';
 import type { RouteCharge, VehicleType } from '../types';
 import { EditIcon, DeleteIcon, PlusIcon } from '../components/icons';
@@ -18,10 +17,9 @@ interface RouteChargeFormData {
   trip_charge: number;
   driver_wage: number;
   loading_charge: number;
-  metadata?: string;
 }
 
-const emptyRouteChargeForm: Omit<RouteChargeFormData, 'id'> = { route: '', vehicle_type_id: '', trip_charge: 0, driver_wage: 0, loading_charge: 0, metadata: '{}' };
+const emptyRouteChargeForm: Omit<RouteChargeFormData, 'id'> = { route: '', vehicle_type_id: '', trip_charge: 0, driver_wage: 0, loading_charge: 0 };
 
 const RouteCharges: React.FC = () => {
   const { items: routeCharges, addItem, updateItem, deleteItem, loading, error, pagination, refetch } = useCrud<RouteCharge>('/route_charges');
@@ -45,21 +43,20 @@ const RouteCharges: React.FC = () => {
     { header: 'Code', accessor: 'code' },
     { header: 'Route', accessor: 'route' },
     { header: 'Vehicle Type', accessor: (rc) => rc.vehicle_type?.name || 'N/A' },
-    { header: 'Trip Charge', accessor: (rc) => `$${rc.trip_charge.toFixed(2)}` },
-    { header: 'Driver Wage', accessor: (rc) => `$${rc.driver_wage.toFixed(2)}` },
-    { header: 'Loading Charge', accessor: (rc) => `$${rc.loading_charge.toFixed(2)}` },
-    { header: 'Total Charge', accessor: (rc) => `$${(rc.trip_charge + rc.driver_wage + rc.loading_charge).toFixed(2)}` },
+    { header: 'Trip Charge', accessor: (rc) => `$${parseFloat(rc.trip_charge || '0').toFixed(2)}` },
+    { header: 'Driver Wage', accessor: (rc) => `$${parseFloat(rc.driver_wage || '0').toFixed(2)}` },
+    { header: 'Loading Charge', accessor: (rc) => `$${parseFloat(rc.loading_charge || '0').toFixed(2)}` },
+    { header: 'Total Charge', accessor: (rc) => `$${(parseFloat(rc.trip_charge || '0') + parseFloat(rc.driver_wage || '0') + parseFloat(rc.loading_charge || '0')).toFixed(2)}` },
   ], []);
 
   const handleEdit = (routeCharge: RouteCharge) => {
     setCurrentItem({
       id: routeCharge.id,
       route: routeCharge.route,
-      trip_charge: routeCharge.trip_charge,
-      driver_wage: routeCharge.driver_wage,
-      loading_charge: routeCharge.loading_charge,
+      trip_charge: parseFloat(routeCharge.trip_charge) || 0,
+      driver_wage: parseFloat(routeCharge.driver_wage) || 0,
+      loading_charge: parseFloat(routeCharge.loading_charge) || 0,
       vehicle_type_id: routeCharge.vehicle_type?.id || routeCharge.vehicle_type_id,
-      metadata: routeCharge.metadata || '{}',
     });
     setIsModalOpen(true);
   };
@@ -84,7 +81,7 @@ const RouteCharges: React.FC = () => {
     handleCloseModal();
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     const numericFields = ['trip_charge', 'driver_wage', 'loading_charge'];
     setCurrentItem(prev => ({
@@ -153,7 +150,6 @@ const RouteCharges: React.FC = () => {
             <Input label="Driver Wage" id="driver_wage" name="driver_wage" type="number" step="0.01" value={currentItem.driver_wage} onChange={handleChange} required />
             <Input label="Loading Charge" id="loading_charge" name="loading_charge" type="number" step="0.01" value={currentItem.loading_charge} onChange={handleChange} required />
           </div>
-          <Textarea label="Metadata (JSON)" id="metadata" name="metadata" value={currentItem.metadata || ''} onChange={handleChange} rows={3} />
           <div className="flex justify-end pt-6 space-x-2 border-t border-gray-200 dark:border-gray-700">
             <Button type="button" variant="secondary" onClick={handleCloseModal}>Cancel</Button>
             <Button type="submit">Save</Button>

@@ -49,12 +49,13 @@ export interface Driver extends BaseEntity {
 export interface RouteCharge extends BaseEntity {
   code?: string;
   route: string;
-  trip_charge: number;
-  driver_wage: number;
-  loading_charge: number;
+  trip_charge: string;
+  driver_wage: string;
+  loading_charge: string;
   vehicle_type_id: number | string;
-  metadata?: string; // JSON string
   vehicle_type?: VehicleType;
+  // FIX: Added optional metadata property to align with its use in forms.
+  metadata?: string; // JSON string
 }
 
 export interface Invoice extends BaseEntity {
