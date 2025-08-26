@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
@@ -9,6 +10,8 @@ import Vehicles from './pages/Vehicles';
 import Drivers from './pages/Drivers';
 import RouteCharges from './pages/RouteCharges';
 import Invoices from './pages/Invoices';
+import InvoiceCreate from './pages/invoices/InvoiceCreate';
+import InvoiceDetail from './pages/invoices/InvoiceDetail';
 import CreditNotes from './pages/CreditNotes';
 import VehicleTypes from './pages/VehicleTypes';
 import Documents from './pages/Documents';
@@ -33,6 +36,9 @@ const App: React.FC = () => {
                 <Route path="/drivers" element={<Drivers />} />
                 <Route path="/route-charges" element={<RouteCharges />} />
                 <Route path="/invoices" element={<Invoices />} />
+                <Route path="/invoices/new" element={<InvoiceCreate />} />
+                <Route path="/invoices/:id" element={<InvoiceDetail />} />
+                <Route path="/invoices/:id/edit" element={<InvoiceCreate />} />
                 <Route path="/credit-notes" element={<CreditNotes />} />
                 <Route path="/vehicle-types" element={<VehicleTypes />} />
                 <Route path="/documents" element={<Documents />} />

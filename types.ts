@@ -1,3 +1,4 @@
+
 export interface BaseEntity {
   id: number | string;
   created_at?: string;
@@ -58,21 +59,37 @@ export interface RouteCharge extends BaseEntity {
   metadata?: string; // JSON string
 }
 
+export interface InvoiceItem extends BaseEntity {
+  invoice_id: string;
+  product_name: string;
+  description?: string;
+  unit_price: number;
+  quantity: number;
+  discount: number; // percentage
+}
+
 export interface Invoice extends BaseEntity {
   invoice_number: string;
-  customer_id: number;
+  customer_id: string;
   issue_date: string;
   due_date: string;
   total_amount: number;
   status: 'Draft' | 'Sent' | 'Paid' | 'Overdue';
-}
-
-export interface InvoiceItem extends BaseEntity {
-  invoice_id: number;
-  description: string;
-  quantity: number;
-  unit_price: number;
-  total: number;
+  
+  customer?: Customer;
+  currency: string;
+  payment_condition?: string;
+  delivery_date?: string;
+  reference?: string;
+  object?: string;
+  additional_info?: string;
+  vat_applicable?: boolean;
+  
+  subtotal: number;
+  tax: number;
+  shipping_estimate: number;
+  
+  invoice_items: InvoiceItem[];
 }
 
 export interface CreditNote extends BaseEntity {

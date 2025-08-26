@@ -1,20 +1,23 @@
+
 import React, { useMemo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import DataTable, { type Column } from '../components/DataTable';
 import Button from '../components/Button';
 import { useCrud, useFetch } from '../hooks/useCrud';
 import type { Invoice, Customer } from '../types';
-import { EditIcon, DeleteIcon, PlusIcon } from '../components/icons';
+import { EditIcon, DeleteIcon, PlusIcon, EyeIcon } from '../components/icons';
 
 const Invoices: React.FC = () => {
   const { items: invoices, deleteItem, loading, error } = useCrud<Invoice>('/invoices');
   const { data: customers, loading: customersLoading } = useFetch<Customer[]>('/customers');
+  const navigate = useNavigate();
 
   const customerMap = useMemo(() => {
     return customers?.reduce((acc, c) => {
         acc[c.id] = c.name;
         return acc;
-    }, {} as Record<number, string>) || {};
+    }, {} as Record<string, string>) || {};
   }, [customers]);
 
   const getStatusClass = (status: Invoice['status']) => {
@@ -43,10 +46,12 @@ const Invoices: React.FC = () => {
   return (
     <>
       <Header title="Invoices">
-        <Button onClick={() => alert('Add new invoice functionality not implemented.')}>
-          <PlusIcon />
-          Add Invoice
-        </Button>
+        <Link to="/invoices/new">
+            <Button>
+              <PlusIcon />
+              Add Invoice
+            </Button>
+        </Link>
       </Header>
       <DataTable
         columns={columns}
@@ -55,8 +60,9 @@ const Invoices: React.FC = () => {
         error={error}
         renderActions={(invoice) => (
           <>
-            <Button variant="icon" onClick={() => alert('Edit not implemented.')}><EditIcon /></Button>
-            <Button variant="icon" onClick={() => deleteItem(invoice.id)}><DeleteIcon /></Button>
+            <Button variant="icon" title="View" onClick={() => navigate(`/invoices/${invoice.id}`)}><EyeIcon /></Button>
+            <Button variant="icon" title="Edit" onClick={() => navigate(`/invoices/${invoice.id}/edit`)}><EditIcon /></Button>
+            <Button variant="icon" title="Delete" onClick={() => deleteItem(invoice.id)}><DeleteIcon /></Button>
           </>
         )}
       />
