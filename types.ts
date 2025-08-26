@@ -47,10 +47,12 @@ export interface Driver extends BaseEntity {
 }
 
 export interface RouteCharge extends BaseEntity {
-  name: string;
-  start_location: string;
-  end_location: string;
-  distance: number; // in km
+  code?: string;
+  route: string;
+  charge: number;
+  vehicle_type_id: number | string;
+  metadata?: string; // JSON string
+  vehicle_type?: VehicleType;
 }
 
 export interface Invoice extends BaseEntity {
