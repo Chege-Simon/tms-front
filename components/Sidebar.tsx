@@ -1,8 +1,7 @@
+
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { TruckIcon as AppIcon, DashboardIcon, UsersIcon, SteeringWheelIcon, RouteIcon, FileTextIcon, CreditCardIcon, FileMinusIcon, CarIcon, DollarSignIcon, LogoutIcon, BookIcon } from './icons';
-import { useAuth } from '../contexts/AuthContext';
-import Button from './Button';
+import { TruckIcon as AppIcon, DashboardIcon, UsersIcon, SteeringWheelIcon, RouteIcon, FileTextIcon, CreditCardIcon, FileMinusIcon, CarIcon, DollarSignIcon, BookIcon } from './icons';
 
 const navLinks = [
   { to: "/dashboard", icon: <DashboardIcon />, label: "Dashboard" },
@@ -21,7 +20,6 @@ const navLinks = [
 ];
 
 const Sidebar: React.FC = () => {
-  const { logout } = useAuth();
   const linkClasses = "flex items-center px-4 py-2.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors duration-200";
   const activeLinkClasses = "bg-gray-700 text-white";
 
@@ -44,10 +42,6 @@ const Sidebar: React.FC = () => {
         ))}
       </nav>
       <div className="mt-auto pt-4 border-t border-gray-700">
-          <Button variant="secondary" className="w-full" onClick={logout}>
-              <LogoutIcon />
-              <span className="ml-4">Logout</span>
-          </Button>
           <div className="text-center mt-4 text-xs text-gray-500">© 2024 FleetFlow Inc.</div>
       </div>
     </aside>

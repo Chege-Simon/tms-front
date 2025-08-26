@@ -59,18 +59,24 @@ const Vehicles: React.FC = () => {
     handleCloseModal();
   };
 
-  // FIX: Switched to direct property access for numeric fields to ensure type safety.
-  // TypeScript was unable to correctly infer the type of `updated[name]` within the switch statement.
+  // FIX: Switched to direct property access for all fields to ensure type safety.
+  // TypeScript was unable to correctly infer the type of `updated[name]` when using a grouped switch statement.
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setCurrentItem(prev => {
       const updated = { ...prev };
       switch (name) {
         case 'make':
+          updated.make = value;
+          break;
         case 'model':
+          updated.model = value;
+          break;
         case 'vin':
+          updated.vin = value;
+          break;
         case 'license_plate':
-          updated[name] = value;
+          updated.license_plate = value;
           break;
         case 'year':
           updated.year = parseInt(value, 10) || 0;
