@@ -14,7 +14,8 @@ const Documents: React.FC = () => {
   const ownerMap = useMemo(() => {
     const map: Record<string, string> = {};
     drivers?.forEach(d => map[`driver-${d.id}`] = `Driver: ${d.name}`);
-    vehicles?.forEach(v => map[`vehicle-${v.id}`] = `Vehicle: ${v.make} ${v.model}`);
+    // FIX: Corrected property access from 'make' to 'brand' to match the Vehicle type.
+    vehicles?.forEach(v => map[`vehicle-${v.id}`] = `Vehicle: ${v.brand} ${v.model}`);
     return map;
   }, [drivers, vehicles]);
   
@@ -25,7 +26,8 @@ const Documents: React.FC = () => {
     if(driver) return `Driver: ${driver.name}`;
 
     const vehicle = vehicles?.find(v => v.id === doc.owner_id);
-    if(vehicle) return `Vehicle: ${vehicle.make} ${vehicle.model}`;
+    // FIX: Corrected property access from 'make' to 'brand' to match the Vehicle type.
+    if(vehicle) return `Vehicle: ${vehicle.brand} ${vehicle.model}`;
 
     return 'N/A';
   }

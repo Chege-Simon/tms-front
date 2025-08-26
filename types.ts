@@ -10,6 +10,7 @@ export interface User extends BaseEntity {
 }
 
 export interface Customer extends BaseEntity {
+  code?: string;
   name: string;
   phone?: string;
   address?: string;
@@ -26,12 +27,14 @@ export interface VehicleType extends BaseEntity {
 }
 
 export interface Vehicle extends BaseEntity {
-  make: string;
-  model: string;
-  year: number;
-  vin: string;
-  license_plate: string;
-  vehicle_type_id: number;
+  code?: string;
+  brand: string;
+  model?: string;
+  chassis_number: string;
+  registration_number: string;
+  vehicle_type_id: number | string;
+  metadata?: string; // JSON string
+  vehicle_type?: VehicleType;
 }
 
 export interface Driver extends BaseEntity {

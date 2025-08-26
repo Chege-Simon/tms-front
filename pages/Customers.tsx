@@ -31,6 +31,7 @@ const Customers: React.FC = () => {
 
 
   const columns: Column<Customer>[] = useMemo(() => [
+    { header: 'Code', accessor: 'code' },
     { header: 'Name', accessor: 'name' },
     { header: 'Phone', accessor: 'phone' },
     { header: 'Address', accessor: 'address' },

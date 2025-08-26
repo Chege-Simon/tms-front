@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Header from '../components/Header';
 import DataTable, { type Column } from '../components/DataTable';
@@ -33,7 +34,8 @@ const Drivers: React.FC = () => {
 
   const vehicleMap = useMemo(() => {
     return vehicles?.reduce((acc, v) => {
-      acc[v.id] = `${v.make} ${v.model} (${v.license_plate})`;
+      // FIX: Corrected property access from 'make' to 'brand' and 'license_plate' to 'registration_number' to match the Vehicle type.
+      acc[v.id] = `${v.brand} ${v.model} (${v.registration_number})`;
       return acc;
     }, {} as Record<string | number, string>) || {};
   }, [vehicles]);
@@ -131,7 +133,8 @@ const Drivers: React.FC = () => {
           </div>
           <Select label="Assigned Vehicle" id="vehicle_id" name="vehicle_id" value={currentItem.vehicle_id} onChange={handleChange} required disabled={vehiclesLoading}>
             <option value="">Select a vehicle</option>
-            {vehicles?.map(v => <option key={v.id} value={v.id}>{v.make} {v.model} ({v.license_plate})</option>)}
+            {/* FIX: Corrected property access from 'make' to 'brand' and 'license_plate' to 'registration_number' to match the Vehicle type. */}
+            {vehicles?.map(v => <option key={v.id} value={v.id}>{v.brand} {v.model} ({v.registration_number})</option>)}
           </Select>
           <Textarea label="Metadata (JSON)" id="metadata" name="metadata" value={currentItem.metadata || ''} onChange={handleChange} rows={3} />
           <div className="flex justify-end pt-6 space-x-2 border-t border-gray-200 dark:border-gray-700">

@@ -12,7 +12,8 @@ const Expenses: React.FC = () => {
 
   const vehicleMap = useMemo(() => {
     return vehicles?.reduce((acc, v) => {
-        acc[v.id] = `${v.make} ${v.model} (${v.license_plate})`;
+        // FIX: Corrected property access from 'make' to 'brand' and 'license_plate' to 'registration_number' to match the Vehicle type.
+        acc[v.id] = `${v.brand} ${v.model} (${v.registration_number})`;
         return acc;
     }, {} as Record<number, string>) || {};
   }, [vehicles]);
