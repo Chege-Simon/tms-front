@@ -69,9 +69,17 @@ const InvoiceInitialCreateModal: React.FC<{ isOpen: boolean, onClose: () => void
         setIsSaving(true);
         try {
             const response: any = await api.post('/invoices', formData);
-            const newInvoice = response.data || response;
-            onClose();
-            navigate(`/invoices/${newInvoice.uuid}/edit`);
+            // The successful response contains a 'data' object with the new invoice.
+            const newInvoice = response.data;
+
+            // The API returns the UUID in the 'id' field.
+            if (newInvoice && newInvoice.id) {
+                onClose();
+                navigate(`/invoices/${newInvoice.id}/edit`);
+            } else {
+                console.error("Invalid response structure:", response);
+                throw new Error('Invoice created, but the response was not in the expected format.');
+            }
         } catch (error) {
             console.error("Failed to create invoice", error);
             const message = error instanceof Error ? error.message : 'Unknown error creating invoice.';
