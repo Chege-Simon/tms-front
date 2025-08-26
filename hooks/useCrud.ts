@@ -19,7 +19,7 @@ interface PaginationMeta {
     total?: number;
 }
 
-interface PaginatedResponse<T> {
+interface OldPaginatedResponse<T> {
     data: T[];
     links: PaginationLinks;
     meta: PaginationMeta;
@@ -37,11 +37,44 @@ export const useCrud = <T extends BaseEntity>(endpoint: string) => {
     setError(null);
     setLastUrl(url);
     try {
-      const payload = await api.get<PaginatedResponse<T> | T[]>(url);
+      let relativeUrl = url;
+      // Handle absolute URLs from pagination links by converting them to relative paths
+      if (url.startsWith('http')) {
+        try {
+          const urlObject = new URL(url);
+          relativeUrl = urlObject.pathname + urlObject.search;
+        } catch (e) {
+          console.error('Invalid pagination URL:', url);
+          // Fallback or error handling
+        }
+      }
       
-      if (payload && typeof payload === 'object' && 'data' in payload && Array.isArray((payload as PaginatedResponse<T>).data)) {
-        // It's a paginated response
-        const paginatedPayload = payload as PaginatedResponse<T>;
+      const payload: any = await api.get(relativeUrl);
+      
+      // New paginated structure: { status, data: { data: [], ... }, message }
+      if (payload && payload.data && payload.data.data && Array.isArray(payload.data.data)) {
+        const paginatedData = payload.data;
+        setItems(paginatedData.data);
+        setPagination({
+            links: {
+                first: paginatedData.first_page_url,
+                last: paginatedData.last_page_url,
+                prev: paginatedData.prev_page_url,
+                next: paginatedData.next_page_url,
+            },
+            meta: {
+                current_page: paginatedData.current_page,
+                from: paginatedData.from,
+                last_page: paginatedData.last_page,
+                path: paginatedData.path,
+                per_page: paginatedData.per_page,
+                to: paginatedData.to,
+                total: paginatedData.total,
+            }
+        });
+      } else if (payload && typeof payload === 'object' && 'data' in payload && Array.isArray((payload as OldPaginatedResponse<T>).data)) {
+        // It's an old-style paginated response
+        const paginatedPayload = payload as OldPaginatedResponse<T>;
         setItems(paginatedPayload.data);
         setPagination({ links: paginatedPayload.links, meta: paginatedPayload.meta });
       } else if (Array.isArray(payload)) {
@@ -104,11 +137,18 @@ export const useFetch = <T,>(endpoint: string) => {
         setLoading(true);
         setError(null);
         try {
-            const responseData = await api.get<any>(endpoint);
-            // Handle paginated responses by unwrapping the data array.
-            if (responseData && typeof responseData === 'object' && 'data' in responseData && Array.isArray(responseData.data)) {
+            const responseData: any = await api.get(endpoint);
+            
+            // New paginated structure: { data: { data: [...] } }
+            if (responseData && responseData.data && responseData.data.data && Array.isArray(responseData.data.data)) {
+                setData(responseData.data.data as T);
+            }
+            // Old paginated structure: { data: [...] }
+            else if (responseData && typeof responseData === 'object' && 'data' in responseData && Array.isArray(responseData.data)) {
                 setData(responseData.data as T);
-            } else {
+            } 
+            // Simple response (array or object)
+            else {
                 setData(responseData as T);
             }
         } catch (err) {

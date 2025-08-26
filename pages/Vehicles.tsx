@@ -43,7 +43,8 @@ const Vehicles: React.FC = () => {
   };
   
   const handleAddNew = () => {
-    const initialVehicle = { ...emptyVehicle, vehicle_type_id: vehicleTypes?.[0]?.id || 0 };
+    // FIX: Ensure vehicle_type_id is a number. vehicleTypes[0].id can be string | number.
+    const initialVehicle = { ...emptyVehicle, vehicle_type_id: Number(vehicleTypes?.[0]?.id || 0) };
     setCurrentItem(initialVehicle);
     setIsModalOpen(true);
   };
