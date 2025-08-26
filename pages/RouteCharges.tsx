@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import Header from '../components/Header';
 import DataTable, { type Column } from '../components/DataTable';
@@ -72,12 +73,14 @@ const RouteCharges: React.FC = () => {
         )}
       />
        <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={'id' in currentItem ? 'Edit Route Charge' : 'Add Route Charge'}>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input label="Name" name="name" value={currentItem.name} onChange={handleChange} required />
-          <Input label="Start Location" name="start_location" value={currentItem.start_location} onChange={handleChange} required />
-          <Input label="End Location" name="end_location" value={currentItem.end_location} onChange={handleChange} required />
-          <Input label="Distance (km)" name="distance" type="number" value={currentItem.distance} onChange={handleChange} required />
-          <div className="flex justify-end pt-4 space-x-2">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <Input label="Name" id="name" name="name" value={currentItem.name} onChange={handleChange} required />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <Input label="Start Location" id="start_location" name="start_location" value={currentItem.start_location} onChange={handleChange} required />
+              <Input label="End Location" id="end_location" name="end_location" value={currentItem.end_location} onChange={handleChange} required />
+          </div>
+          <Input label="Distance (km)" id="distance" name="distance" type="number" value={currentItem.distance} onChange={handleChange} required />
+          <div className="flex justify-end pt-6 space-x-2 border-t border-gray-200 dark:border-gray-700">
             <Button type="button" variant="secondary" onClick={handleCloseModal}>Cancel</Button>
             <Button type="submit">Save</Button>
           </div>

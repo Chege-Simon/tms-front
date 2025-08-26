@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import Header from '../components/Header';
 import DataTable, { type Column } from '../components/DataTable';
@@ -72,12 +73,14 @@ const Drivers: React.FC = () => {
         )}
       />
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={'id' in currentItem ? 'Edit Driver' : 'Add Driver'}>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input label="Name" name="name" value={currentItem.name} onChange={handleChange} required />
-          <Input label="Email" name="email" type="email" value={currentItem.email} onChange={handleChange} required />
-          <Input label="Phone" name="phone" value={currentItem.phone} onChange={handleChange} required />
-          <Input label="License Number" name="license_number" value={currentItem.license_number} onChange={handleChange} required />
-          <div className="flex justify-end pt-4 space-x-2">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <Input label="Name" id="name" name="name" value={currentItem.name} onChange={handleChange} required />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <Input label="Email" id="email" name="email" type="email" value={currentItem.email} onChange={handleChange} required />
+            <Input label="Phone" id="phone" name="phone" value={currentItem.phone} onChange={handleChange} required />
+          </div>
+          <Input label="License Number" id="license_number" name="license_number" value={currentItem.license_number} onChange={handleChange} required />
+          <div className="flex justify-end pt-6 space-x-2 border-t border-gray-200 dark:border-gray-700">
             <Button type="button" variant="secondary" onClick={handleCloseModal}>Cancel</Button>
             <Button type="submit">Save</Button>
           </div>

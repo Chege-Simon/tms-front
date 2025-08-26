@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Header from '../components/Header';
 import DataTable, { type Column } from '../components/DataTable';
@@ -8,6 +9,7 @@ import Textarea from '../components/Textarea';
 import { useCrud } from '../hooks/useCrud';
 import type { Customer } from '../types';
 import { EditIcon, DeleteIcon, PlusIcon } from '../components/icons';
+import CountrySelect from '../components/CountrySelect';
 
 const emptyCustomer: Omit<Customer, 'id' | 'created_at' | 'updated_at'> = { name: '', phone: '', address: '', location: '', country: '', metadata: '{}' };
 
@@ -60,7 +62,7 @@ const Customers: React.FC = () => {
     handleCloseModal();
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setCurrentItem(prev => ({ ...prev, [name]: value }));
   };
@@ -112,14 +114,16 @@ const Customers: React.FC = () => {
       />
       {pagination.meta && pagination.meta.total > 0 && <PaginationControls />}
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={'id' in currentItem ? 'Edit Customer' : 'Add Customer'}>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input label="Name" name="name" value={currentItem.name} onChange={handleChange} required />
-          <Input label="Phone" name="phone" value={currentItem.phone || ''} onChange={handleChange} />
-          <Input label="Address" name="address" value={currentItem.address || ''} onChange={handleChange} />
-          <Input label="Location" name="location" value={currentItem.location || ''} onChange={handleChange} />
-          <Input label="Country" name="country" value={currentItem.country || ''} onChange={handleChange} />
-          <Textarea label="Metadata (JSON)" name="metadata" value={currentItem.metadata || ''} onChange={handleChange} rows={3} />
-          <div className="flex justify-end pt-4 space-x-2">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <Input label="Name" id="name" name="name" value={currentItem.name} onChange={handleChange} required />
+          <Input label="Phone" id="phone" name="phone" value={currentItem.phone || ''} onChange={handleChange} />
+          <Input label="Address" id="address" name="address" value={currentItem.address || ''} onChange={handleChange} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <Input label="Location" id="location" name="location" value={currentItem.location || ''} onChange={handleChange} />
+            <CountrySelect value={currentItem.country || ''} onChange={handleChange} />
+          </div>
+          <Textarea label="Metadata (JSON)" id="metadata" name="metadata" value={currentItem.metadata || ''} onChange={handleChange} rows={3} />
+          <div className="flex justify-end pt-6 space-x-2 border-t border-gray-200 dark:border-gray-700">
             <Button type="button" variant="secondary" onClick={handleCloseModal}>Cancel</Button>
             <Button type="submit">Save</Button>
           </div>

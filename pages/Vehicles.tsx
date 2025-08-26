@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import Header from '../components/Header';
 import DataTable, { type Column } from '../components/DataTable';
@@ -58,6 +59,8 @@ const Vehicles: React.FC = () => {
     handleCloseModal();
   };
 
+  // FIX: Switched to direct property access for numeric fields to ensure type safety.
+  // TypeScript was unable to correctly infer the type of `updated[name]` within the switch statement.
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setCurrentItem(prev => {
@@ -70,8 +73,10 @@ const Vehicles: React.FC = () => {
           updated[name] = value;
           break;
         case 'year':
+          updated.year = parseInt(value, 10) || 0;
+          break;
         case 'vehicle_type_id':
-          updated[name] = parseInt(value, 10) || 0;
+          updated.vehicle_type_id = parseInt(value, 10) || 0;
           break;
       }
       return updated;
@@ -99,17 +104,21 @@ const Vehicles: React.FC = () => {
         )}
       />
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={'id' in currentItem ? 'Edit Vehicle' : 'Add Vehicle'}>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input label="Make" name="make" value={currentItem.make} onChange={handleChange} required />
-          <Input label="Model" name="model" value={currentItem.model} onChange={handleChange} required />
-          <Input label="Year" name="year" type="number" value={currentItem.year} onChange={handleChange} required />
-          <Input label="License Plate" name="license_plate" value={currentItem.license_plate} onChange={handleChange} required />
-          <Input label="VIN" name="vin" value={currentItem.vin} onChange={handleChange} required />
-          <Select label="Vehicle Type" name="vehicle_type_id" value={currentItem.vehicle_type_id} onChange={handleChange} required>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <Input label="Make" id="make" name="make" value={currentItem.make} onChange={handleChange} required />
+            <Input label="Model" id="model" name="model" value={currentItem.model} onChange={handleChange} required />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <Input label="Year" id="year" name="year" type="number" value={currentItem.year} onChange={handleChange} required />
+            <Input label="License Plate" id="license_plate" name="license_plate" value={currentItem.license_plate} onChange={handleChange} required />
+          </div>
+          <Input label="VIN" id="vin" name="vin" value={currentItem.vin} onChange={handleChange} required />
+          <Select label="Vehicle Type" id="vehicle_type_id" name="vehicle_type_id" value={currentItem.vehicle_type_id} onChange={handleChange} required>
             <option value="">Select a type</option>
             {vehicleTypes?.map(vt => <option key={vt.id} value={vt.id}>{vt.name}</option>)}
           </Select>
-          <div className="flex justify-end pt-4 space-x-2">
+          <div className="flex justify-end pt-6 space-x-2 border-t border-gray-200 dark:border-gray-700">
             <Button type="button" variant="secondary" onClick={handleCloseModal}>Cancel</Button>
             <Button type="submit">Save</Button>
           </div>

@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import Header from '../components/Header';
 import DataTable, { type Column } from '../components/DataTable';
@@ -70,10 +71,10 @@ const VehicleTypes: React.FC = () => {
         )}
       />
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={'id' in currentItem ? 'Edit Vehicle Type' : 'Add Vehicle Type'}>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input label="Name" name="name" value={currentItem.name} onChange={handleChange} required />
-          <Input label="Description" name="description" value={currentItem.description} onChange={handleChange} required />
-          <div className="flex justify-end pt-4 space-x-2">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <Input label="Name" id="name" name="name" value={currentItem.name} onChange={handleChange} required />
+          <Input label="Description" id="description" name="description" value={currentItem.description} onChange={handleChange} required />
+          <div className="flex justify-end pt-6 space-x-2 border-t border-gray-200 dark:border-gray-700">
             <Button type="button" variant="secondary" onClick={handleCloseModal}>Cancel</Button>
             <Button type="submit">Save</Button>
           </div>
