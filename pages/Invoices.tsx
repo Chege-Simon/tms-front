@@ -1,5 +1,4 @@
 
-
 import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
@@ -43,10 +42,10 @@ const InvoiceInitialCreateModal: React.FC<{ isOpen: boolean, onClose: () => void
                 setCustomers(customerData);
                 setVehicles(vehicleData);
                 if (customerData.length > 0) {
-                    setFormData(prev => ({...prev, customer_id: customerData[0].uuid || customerData[0].id}));
+                    setFormData(prev => ({...prev, customer_id: customerData[0].id}));
                 }
                 if (vehicleData.length > 0) {
-                    setFormData(prev => ({...prev, vehicle_id: vehicleData[0].uuid || vehicleData[0].id}));
+                    setFormData(prev => ({...prev, vehicle_id: vehicleData[0].id}));
                 }
             } catch (error) {
                 console.error("Failed to fetch customers/vehicles", error);
@@ -96,11 +95,11 @@ const InvoiceInitialCreateModal: React.FC<{ isOpen: boolean, onClose: () => void
                     <>
                         <Select label="Customer" id="customer_id" name="customer_id" value={formData.customer_id} onChange={handleChange} required>
                             <option value="" disabled>Select customer</option>
-                            {customers.map(c => <option key={c.uuid || c.id} value={c.uuid || c.id}>{c.name}</option>)}
+                            {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </Select>
                         <Select label="Vehicle" id="vehicle_id" name="vehicle_id" value={formData.vehicle_id} onChange={handleChange} required>
                              <option value="" disabled>Select vehicle</option>
-                             {vehicles.map(v => <option key={v.uuid || v.id} value={v.uuid || v.id}>{v.brand} {v.model} ({v.registration_number})</option>)}
+                             {vehicles.map(v => <option key={v.id} value={v.id}>{v.brand} {v.model} ({v.registration_number})</option>)}
                         </Select>
                         <Input label="Issue Date" id="issue_date" name="issue_date" type="date" value={formData.issue_date} onChange={handleChange} required />
                         <Input label="Due Date" id="due_date" name="due_date" type="date" value={formData.due_date} onChange={handleChange} required />
@@ -163,9 +162,9 @@ const Invoices: React.FC = () => {
         error={error}
         renderActions={(invoice) => (
           <>
-            <Button variant="icon" title="View" onClick={() => navigate(`/invoices/${invoice.uuid || invoice.id}`)}><EyeIcon /></Button>
-            <Button variant="icon" title="Edit" onClick={() => navigate(`/invoices/${invoice.uuid || invoice.id}/edit`)}><EditIcon /></Button>
-            <Button variant="icon" title="Delete" onClick={() => deleteItem(invoice.uuid || invoice.id)}><DeleteIcon /></Button>
+            <Button variant="icon" title="View" onClick={() => navigate(`/invoices/${invoice.id}`)}><EyeIcon /></Button>
+            <Button variant="icon" title="Edit" onClick={() => navigate(`/invoices/${invoice.id}/edit`)}><EditIcon /></Button>
+            <Button variant="icon" title="Delete" onClick={() => deleteItem(invoice.id)}><DeleteIcon /></Button>
           </>
         )}
       />
