@@ -52,6 +52,12 @@ const Customers: React.FC = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
+  
+  const handleDelete = (id: string | number) => {
+    if (window.confirm('Are you sure you want to delete this customer?')) {
+        deleteItem(id);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,7 +115,7 @@ const Customers: React.FC = () => {
         renderActions={(customer) => (
           <>
             <Button variant="icon" onClick={() => handleEdit(customer)}><EditIcon /></Button>
-            <Button variant="icon" onClick={() => deleteItem(customer.id)}><DeleteIcon /></Button>
+            <Button variant="icon" onClick={() => handleDelete(customer.id)}><DeleteIcon /></Button>
           </>
         )}
       />

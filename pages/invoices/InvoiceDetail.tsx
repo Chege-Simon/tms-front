@@ -1,23 +1,53 @@
 
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCrud, useFetch } from '../../hooks/useCrud';
 import type { Invoice, InvoiceItem } from '../../types';
 import Button from '../../components/Button';
 import { DownloadIcon, PrintIcon, EditIcon } from '../../components/icons';
-import { notifyWarning } from '../../services/notification';
+import { notifyWarning, notifySuccess, notifyError } from '../../services/notification';
+import api from '../../services/api';
 
 const InvoiceDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     
-    const { data: invoice, loading: invoiceLoading, error: invoiceError } = useFetch<Invoice>(`/invoices/${id}`);
+    const { data: invoice, loading: invoiceLoading, error: invoiceError, refetch: refetchInvoice } = useFetch<Invoice>(`/invoices/${id}`);
     const { items: invoiceItems, loading: itemsLoading, error: itemsError } = useCrud<InvoiceItem>(`/invoice_items?invoice_id=${id}`);
+    
+    const [currentStatus, setCurrentStatus] = useState<Invoice['status']>('Draft');
+    const [isUpdating, setIsUpdating] = useState(false);
+
+    useEffect(() => {
+        if (invoice) {
+            setCurrentStatus(invoice.status);
+        }
+    }, [invoice]);
 
     const handlePrint = () => {
         window.print();
     };
+
+    const handleStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const newStatus = e.target.value as Invoice['status'];
+        setCurrentStatus(newStatus);
+        setIsUpdating(true);
+        try {
+            await api.put(`/invoices/${id}`, { status: newStatus });
+            notifySuccess('Invoice status updated successfully.');
+            refetchInvoice();
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Failed to update status.';
+            notifyError(message);
+            if (invoice) {
+                setCurrentStatus(invoice.status);
+            }
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
 
     if (invoiceLoading || itemsLoading) return <div className="text-center p-8">Loading invoice...</div>;
     
@@ -25,17 +55,6 @@ const InvoiceDetail: React.FC = () => {
     if (combinedError) return <div className="text-center p-8 text-red-500">Error: {combinedError.message}</div>;
     
     if (!invoice) return <div className="text-center p-8">Invoice not found.</div>;
-    
-    const getStatusChip = (status: Invoice['status']) => {
-        const baseClasses = "px-3 py-1 text-xs font-medium rounded-full inline-block";
-        const statusClasses = {
-            Paid: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-            Sent: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-            Overdue: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-            Draft: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-        };
-        return <div className={`${baseClasses} ${statusClasses[status]}`}>{status}</div>;
-    };
 
     return (
         <>
@@ -124,7 +143,21 @@ const InvoiceDetail: React.FC = () => {
                 {/* Sidebar for screen only */}
                 <aside className="no-print lg:w-80 flex-shrink-0 space-y-6">
                     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-                        {getStatusChip(invoice.status)}
+                        <div className="flex items-center gap-2 mb-4">
+                            <label htmlFor="status" className="text-sm font-medium text-gray-500 dark:text-gray-400 flex-shrink-0">Status:</label>
+                            <select
+                                id="status"
+                                value={currentStatus}
+                                onChange={handleStatusChange}
+                                disabled={isUpdating}
+                                className="block w-full p-2 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-indigo-500 dark:focus:border-indigo-500"
+                            >
+                                <option value="Draft">Draft</option>
+                                <option value="Sent">Sent</option>
+                                <option value="Paid">Paid</option>
+                                <option value="Overdue">Overdue</option>
+                            </select>
+                        </div>
                         <div className="my-4">
                             <p className="text-sm text-gray-500 dark:text-gray-400">Invoice to:</p>
                             <p className="font-semibold text-gray-800 dark:text-white">{invoice.customer?.name}</p>

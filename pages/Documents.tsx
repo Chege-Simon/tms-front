@@ -31,6 +31,12 @@ const Documents: React.FC = () => {
 
     return 'N/A';
   }
+  
+  const handleDelete = (id: string | number) => {
+    if (window.confirm('Are you sure you want to delete this document?')) {
+        deleteItem(id);
+    }
+  };
 
   const columns: Column<Document>[] = useMemo(() => [
     { header: 'Name', accessor: 'name' },
@@ -57,7 +63,7 @@ const Documents: React.FC = () => {
         renderActions={(document) => (
           <>
             <Button variant="icon" onClick={() => alert('Edit not implemented')}><EditIcon /></Button>
-            <Button variant="icon" onClick={() => deleteItem(document.id)}><DeleteIcon /></Button>
+            <Button variant="icon" onClick={() => handleDelete(document.id)}><DeleteIcon /></Button>
           </>
         )}
       />

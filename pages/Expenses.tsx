@@ -27,6 +27,12 @@ const Expenses: React.FC = () => {
     { header: 'Amount', accessor: (exp) => `KES ${exp.amount.toFixed(2)}` },
     { header: 'Description', accessor: 'description' },
   ], [vehicleMap]);
+  
+  const handleDelete = (id: string | number) => {
+    if (window.confirm('Are you sure you want to delete this expense?')) {
+        deleteItem(id);
+    }
+  };
 
   return (
     <>
@@ -44,7 +50,7 @@ const Expenses: React.FC = () => {
         renderActions={(expense) => (
           <>
             <Button variant="icon" onClick={() => notifyWarning('Edit not implemented.')}><EditIcon /></Button>
-            <Button variant="icon" onClick={() => deleteItem(expense.id)}><DeleteIcon /></Button>
+            <Button variant="icon" onClick={() => handleDelete(expense.id)}><DeleteIcon /></Button>
           </>
         )}
       />

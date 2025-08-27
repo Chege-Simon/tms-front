@@ -13,6 +13,12 @@ const Users: React.FC = () => {
     { header: 'Name', accessor: 'name' },
     { header: 'Email', accessor: 'email' },
   ], []);
+  
+  const handleDelete = (id: string | number) => {
+    if (window.confirm('Are you sure you want to delete this user?')) {
+        deleteItem(id);
+    }
+  };
 
   return (
     <>
@@ -30,7 +36,7 @@ const Users: React.FC = () => {
         renderActions={(user) => (
           <>
             <Button variant="icon" onClick={() => alert('Edit not implemented.')}><EditIcon /></Button>
-            <Button variant="icon" onClick={() => deleteItem(user.id)}><DeleteIcon /></Button>
+            <Button variant="icon" onClick={() => handleDelete(user.id)}><DeleteIcon /></Button>
           </>
         )}
       />

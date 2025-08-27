@@ -148,15 +148,17 @@ const InvoiceEdit: React.FC = () => {
     };
     
     const handleDeleteItem = async (itemId: string | number) => {
-        try {
-            await api.del(`/invoice_items/${itemId}`);
-            notifySuccess('Item deleted successfully.');
-            refetchItems();
-            refetchInvoice();
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Failed to delete item.';
-            notifyError(message);
-            console.error("Failed to delete item:", error);
+        if (window.confirm('Are you sure you want to delete this invoice item?')) {
+            try {
+                await api.del(`/invoice_items/${itemId}`);
+                notifySuccess('Item deleted successfully.');
+                refetchItems();
+                refetchInvoice();
+            } catch (error) {
+                const message = error instanceof Error ? error.message : 'Failed to delete item.';
+                notifyError(message);
+                console.error("Failed to delete item:", error);
+            }
         }
     };
     

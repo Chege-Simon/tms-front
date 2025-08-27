@@ -132,6 +132,12 @@ const Invoices: React.FC = () => {
       default: return '';
     }
   };
+  
+  const handleDelete = (id: string | number) => {
+    if (window.confirm('Are you sure you want to delete this invoice?')) {
+        deleteItem(id);
+    }
+  };
 
   const columns: Column<Invoice>[] = useMemo(() => [
     { header: 'Number', accessor: 'code' },
@@ -164,7 +170,7 @@ const Invoices: React.FC = () => {
           <>
             <Button variant="icon" title="View" onClick={() => navigate(`/invoices/${invoice.id}`)}><EyeIcon /></Button>
             <Button variant="icon" title="Edit" onClick={() => navigate(`/invoices/${invoice.id}/edit`)}><EditIcon /></Button>
-            <Button variant="icon" title="Delete" onClick={() => deleteItem(invoice.id)}><DeleteIcon /></Button>
+            <Button variant="icon" title="Delete" onClick={() => handleDelete(invoice.id)}><DeleteIcon /></Button>
           </>
         )}
       />

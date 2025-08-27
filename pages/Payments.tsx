@@ -16,6 +16,12 @@ const Payments: React.FC = () => {
     { header: 'Amount', accessor: (p) => `KES ${p.amount.toFixed(2)}` },
     { header: 'Payment Method', accessor: 'payment_method' },
   ], []);
+  
+  const handleDelete = (id: string | number) => {
+    if (window.confirm('Are you sure you want to delete this payment?')) {
+        deleteItem(id);
+    }
+  };
 
   return (
     <>
@@ -33,7 +39,7 @@ const Payments: React.FC = () => {
         renderActions={(payment) => (
           <>
             <Button variant="icon" onClick={() => notifyWarning('Edit not implemented.')}><EditIcon /></Button>
-            <Button variant="icon" onClick={() => deleteItem(payment.id)}><DeleteIcon /></Button>
+            <Button variant="icon" onClick={() => handleDelete(payment.id)}><DeleteIcon /></Button>
           </>
         )}
       />

@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Header from '../components/Header';
 import DataTable, { type Column } from '../components/DataTable';
@@ -70,6 +71,12 @@ const Drivers: React.FC = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
+  
+  const handleDelete = (id: string | number) => {
+    if (window.confirm('Are you sure you want to delete this driver?')) {
+        deleteItem(id);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,7 +136,7 @@ const Drivers: React.FC = () => {
         renderActions={(driver) => (
           <>
             <Button variant="icon" onClick={() => handleEdit(driver)}><EditIcon /></Button>
-            <Button variant="icon" onClick={() => deleteItem(driver.id)}><DeleteIcon /></Button>
+            <Button variant="icon" onClick={() => handleDelete(driver.id)}><DeleteIcon /></Button>
           </>
         )}
       />

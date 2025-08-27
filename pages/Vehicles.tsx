@@ -55,6 +55,12 @@ const Vehicles: React.FC = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
+  
+  const handleDelete = (id: string | number) => {
+    if (window.confirm('Are you sure you want to delete this vehicle?')) {
+        deleteItem(id);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,7 +118,7 @@ const Vehicles: React.FC = () => {
         renderActions={(vehicle) => (
           <>
             <Button variant="icon" onClick={() => handleEdit(vehicle)}><EditIcon /></Button>
-            <Button variant="icon" onClick={() => deleteItem(vehicle.id)}><DeleteIcon /></Button>
+            <Button variant="icon" onClick={() => handleDelete(vehicle.id)}><DeleteIcon /></Button>
           </>
         )}
       />

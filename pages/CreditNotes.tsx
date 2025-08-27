@@ -27,6 +27,12 @@ const CreditNotes: React.FC = () => {
     { header: 'Reason', accessor: 'reason' },
   ], [customerMap]);
   
+  const handleDelete = (id: string | number) => {
+    if (window.confirm('Are you sure you want to delete this credit note?')) {
+        deleteItem(id);
+    }
+  };
+  
   return (
     <>
       <Header title="Credit Notes">
@@ -43,7 +49,7 @@ const CreditNotes: React.FC = () => {
         renderActions={(creditNote) => (
           <>
             <Button variant="icon" onClick={() => notifyWarning('Edit not implemented.')}><EditIcon /></Button>
-            <Button variant="icon" onClick={() => deleteItem(creditNote.id)}><DeleteIcon /></Button>
+            <Button variant="icon" onClick={() => handleDelete(creditNote.id)}><DeleteIcon /></Button>
           </>
         )}
       />

@@ -71,6 +71,12 @@ const RouteCharges: React.FC = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
+  
+  const handleDelete = (id: string | number) => {
+    if (window.confirm('Are you sure you want to delete this route charge?')) {
+        deleteItem(id);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,7 +138,7 @@ const RouteCharges: React.FC = () => {
         renderActions={(routeCharge) => (
           <>
             <Button variant="icon" onClick={() => handleEdit(routeCharge)}><EditIcon /></Button>
-            <Button variant="icon" onClick={() => deleteItem(routeCharge.id)}><DeleteIcon /></Button>
+            <Button variant="icon" onClick={() => handleDelete(routeCharge.id)}><DeleteIcon /></Button>
           </>
         )}
       />
