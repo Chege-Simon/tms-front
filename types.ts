@@ -43,7 +43,7 @@ export interface Vehicle extends BaseEntity {
 
 export interface Driver extends BaseEntity {
   code?: string;
-  name: string;
+  name:string;
   national_id: string;
   phone: string;
   vehicle: Vehicle;
@@ -133,11 +133,15 @@ export interface Document extends BaseEntity {
 }
 
 export interface Expense extends BaseEntity {
-  vehicle_id: number;
-  date: string;
-  category: 'DRIVER_WAGE' | 'LOADING_COST' | 'FUEL_COST' | 'MAINTENANCE_COST' | 'VEHICHLE_SERVICE_COST' | 'INSURANCE';
-  amount: number;
-  description: string;
+  code?: string;
+  vehicle_id: string;
+  invoice_item_id?: string | null;
+  type: 'DRIVER_WAGE' | 'LOADING_COST' | 'FUEL_COST' | 'MAINTENANCE_COST' | 'VEHICHLE_SERVICE_COST' | 'INSURANCE';
+  expense_date: string;
+  currency: 'KES';
+  total_amount: number;
+  vehicle?: Vehicle;
+  invoiceItem?: InvoiceItem;
 }
 
 export interface Payment extends BaseEntity {

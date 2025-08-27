@@ -27,7 +27,8 @@ const Dashboard: React.FC = () => {
   const { data: drivers, loading: driversLoading } = useFetch<Driver[]>('/drivers');
   const { data: expenses, loading: expensesLoading } = useFetch<Expense[]>('/expenses');
 
-  const totalExpenses = expenses?.reduce((acc, expense) => acc + expense.amount, 0) || 0;
+  // FIX: Corrected property access from 'amount' to 'total_amount' to match the Expense type.
+  const totalExpenses = expenses?.reduce((acc, expense) => acc + expense.total_amount, 0) || 0;
 
   return (
     <>

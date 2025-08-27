@@ -8,17 +8,7 @@ import Button from '../../components/Button';
 import { DownloadIcon, PrintIcon, EditIcon } from '../../components/icons';
 import { notifyWarning, notifySuccess, notifyError } from '../../services/notification';
 import api from '../../services/api';
-
-const formatDateForApi = (dateString: string) => {
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    const seconds = date.getSeconds().toString().padStart(2, '0');
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-};
+import { formatDateForApi } from '../../services/datetime';
 
 const InvoiceDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
