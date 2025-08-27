@@ -1,4 +1,5 @@
 
+
 export interface BaseEntity {
   id: number | string;
   uuid?: string;
@@ -9,6 +10,7 @@ export interface BaseEntity {
 export interface User extends BaseEntity {
   name: string;
   email: string;
+  status?: 'Active' | 'Inactive' | 'Blocked' | 'Pending';
 }
 
 export interface Customer extends BaseEntity {
@@ -84,7 +86,7 @@ export interface Invoice extends BaseEntity {
   issue_date: string;
   due_date: string;
   total_amount: number;
-  status: 'Draft' | 'Sent' | 'Paid' | 'Overdue';
+  status: 'Draft' | 'Issued' | 'Paid' | 'Overdue' | 'Cancelled';
   currency: string;
   
   customer?: Customer;
@@ -123,7 +125,7 @@ export interface CreditNoteItem extends BaseEntity {
 
 export interface Document extends BaseEntity {
   name: string;
-  type: 'Driving License' | 'Vehicle Registration' | 'Insurance';
+  type: 'LOG_BOOK' | 'LICENSE' | 'IDENTIFICATION' | 'RECEIPT' | 'CHEQUE' | 'INSURANCE';
   issue_date: string;
   expiry_date: string;
   file_url: string;
@@ -133,7 +135,7 @@ export interface Document extends BaseEntity {
 export interface Expense extends BaseEntity {
   vehicle_id: number;
   date: string;
-  category: 'Fuel' | 'Maintenance' | 'Insurance' | 'Other';
+  category: 'DRIVER_WAGE' | 'LOADING_COST' | 'FUEL_COST' | 'MAINTENANCE_COST' | 'VEHICHLE_SERVICE_COST' | 'INSURANCE';
   amount: number;
   description: string;
 }

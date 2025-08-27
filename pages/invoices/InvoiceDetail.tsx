@@ -9,6 +9,17 @@ import { DownloadIcon, PrintIcon, EditIcon } from '../../components/icons';
 import { notifyWarning, notifySuccess, notifyError } from '../../services/notification';
 import api from '../../services/api';
 
+const formatDateForApi = (dateString: string) => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const seconds = date.getSeconds().toString().padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
+
 const InvoiceDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
@@ -30,11 +41,24 @@ const InvoiceDetail: React.FC = () => {
     };
 
     const handleStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+        if (!invoice) return;
+        
         const newStatus = e.target.value as Invoice['status'];
         setCurrentStatus(newStatus);
         setIsUpdating(true);
+        
+        const payload = {
+            issue_date: formatDateForApi(invoice.issue_date),
+            due_date: formatDateForApi(invoice.due_date),
+            customer_id: invoice.customer_id,
+            vehicle_id: invoice.vehicle_id,
+            currency: invoice.currency,
+            total_amount: invoice.total_amount,
+            status: newStatus,
+        };
+        
         try {
-            await api.put(`/invoices/${id}`, { status: newStatus });
+            await api.put(`/invoices/${id}`, payload);
             notifySuccess('Invoice status updated successfully.');
             refetchInvoice();
         } catch (err) {
@@ -153,9 +177,10 @@ const InvoiceDetail: React.FC = () => {
                                 className="block w-full p-2 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-indigo-500 dark:focus:border-indigo-500"
                             >
                                 <option value="Draft">Draft</option>
-                                <option value="Sent">Sent</option>
+                                <option value="Issued">Issued</option>
                                 <option value="Paid">Paid</option>
                                 <option value="Overdue">Overdue</option>
+                                <option value="Cancelled">Cancelled</option>
                             </select>
                         </div>
                         <div className="my-4">
