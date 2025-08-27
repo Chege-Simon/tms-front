@@ -34,8 +34,7 @@ const EntityDocumentManager: React.FC<EntityDocumentManagerProps> = ({ entityId,
     }
   };
   
-  const handleUpload = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleUpload = async () => {
     if (!file) {
       notifyError('Please select a file to upload.');
       return;
@@ -102,7 +101,7 @@ const EntityDocumentManager: React.FC<EntityDocumentManagerProps> = ({ entityId,
       </div>
 
       {/* Upload Form */}
-      <form onSubmit={handleUpload} className="flex items-end gap-4">
+      <div className="flex items-end gap-4">
         <div className="flex-grow">
             <Input 
                 id={`file-upload-input-${entityId}`}
@@ -111,10 +110,10 @@ const EntityDocumentManager: React.FC<EntityDocumentManagerProps> = ({ entityId,
                 onChange={handleFileChange}
             />
         </div>
-        <Button type="submit" disabled={isUploading || !file}>
+        <Button type="button" onClick={handleUpload} disabled={isUploading || !file}>
             {isUploading ? 'Uploading...' : 'Upload'}
         </Button>
-      </form>
+      </div>
     </div>
   );
 };
