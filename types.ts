@@ -145,10 +145,13 @@ export interface Expense extends BaseEntity {
 }
 
 export interface Payment extends BaseEntity {
-    invoice_id: number;
+    code?: string;
+    customer_id: string; // UUID
     payment_date: string;
-    amount: number;
-    payment_method: string;
+    currency: 'KES';
+    total_amount: number;
+    notes?: string;
+    customer?: Customer;
 }
 
 export interface Journal extends BaseEntity {

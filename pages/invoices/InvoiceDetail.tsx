@@ -40,8 +40,8 @@ const InvoiceDetail: React.FC = () => {
         const payload = {
             issue_date: formatDateForApi(invoice.issue_date),
             due_date: formatDateForApi(invoice.due_date),
-            customer_id: invoice.customer_id,
-            vehicle_id: invoice.vehicle_id,
+            customer_id: invoice.customer?.uuid || invoice.customer_id,
+            vehicle_id: invoice.vehicle?.uuid || invoice.vehicle_id,
             currency: invoice.currency,
             total_amount: invoice.total_amount,
             status: newStatus,

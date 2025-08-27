@@ -59,7 +59,7 @@ const Expenses: React.FC = () => {
     { header: 'Vehicle', accessor: (exp) => exp.vehicle ? `${exp.vehicle.brand} (${exp.vehicle.registration_number})` : 'N/A' },
     { header: 'Type', accessor: (exp) => exp.type.replace(/_/g, ' ') },
     { header: 'Date', accessor: (exp) => new Date(exp.expense_date).toLocaleString() },
-    { header: 'Amount', accessor: (exp) => `${exp.currency} ${exp.total_amount.toFixed(2)}` },
+    { header: 'Amount', accessor: (exp) => `${exp.currency} ${(exp.total_amount || 0).toFixed(2)}` },
     { header: 'Invoice Item', accessor: (exp) => exp.invoiceItem?.code || 'N/A' },
   ], []);
 
