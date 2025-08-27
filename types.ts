@@ -155,15 +155,21 @@ export interface Payment extends BaseEntity {
 
 export enum JournalTypeEnum {
     CREDIT = 'CREDIT',
-    DEBIT = 'DEBIT',
+    DEBIT = 'LICENSE', // Per backend enum where DEBIT value is 'LICENSE'
 }
+
+// A generic type for polymorphic relations in Journal
+export type Journalable = (Expense | Payment | object) & {
+    code?: string;
+    type?: string; // For expenses
+};
   
 export interface Journal extends BaseEntity {
+    code?: string;
     journal_type: JournalTypeEnum;
     currency: 'KES';
     amount: number;
     customer_id: string;
     customer?: Customer;
-    journalable_type?: string; // e.g., 'App\\Models\\Payment'
-    journalable_id?: string;
+    journal_target?: Journalable; // The polymorphic relation object, matches API response
 }
