@@ -23,6 +23,15 @@ const request = async <T>(endpoint: string, options: RequestInit = {}): Promise<
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
 
+    // Intercept 401 Unauthorized responses to redirect to login
+    if (response.status === 401) {
+        localStorage.removeItem('authToken');
+        // Use replace to prevent the user from navigating back to the broken page
+        window.location.replace('/#/login'); 
+        // Throw an error to prevent further processing in the call stack
+        throw new Error('Session expired. Redirecting to login.');
+    }
+
     const text = await response.text();
     // Handle empty response body for success cases (e.g., DELETE 204 No Content)
     if (!text) {
