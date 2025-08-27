@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Header from '../components/Header';
 import DataTable, { type Column } from '../components/DataTable';
@@ -12,6 +11,7 @@ import { useCrud, useFetch } from '../hooks/useCrud';
 import type { Vehicle, VehicleType } from '../types';
 import { EditIcon, DeleteIcon, PlusIcon } from '../components/icons';
 import FilterPopover from '../components/FilterPopover';
+import EntityDocumentManager from '../components/EntityDocumentManager';
 
 const emptyVehicle: Omit<Vehicle, 'id' | 'created_at' | 'updated_at' | 'code' | 'vehicle_type'> = { brand: '', model: '', chassis_number: '', registration_number: '', vehicle_type_id: '', metadata: '{}' };
 
@@ -188,6 +188,15 @@ const Vehicles: React.FC = () => {
             {vehicleTypes?.map(vt => <option key={vt.id} value={vt.id}>{vt.name}</option>)}
           </Select>
           <Textarea label="Metadata (JSON)" id="metadata" name="metadata" value={currentItem.metadata || ''} onChange={handleChange} rows={3} />
+          
+          {'id' in currentItem && currentItem.id && (
+              <EntityDocumentManager 
+                  entityId={currentItem.id} 
+                  entityTypeForUpload="LOG_BOOK"
+                  label="Log Books"
+              />
+          )}
+
           <div className="flex justify-end pt-6 space-x-2 border-t border-gray-200 dark:border-gray-700">
             <Button type="button" variant="secondary" onClick={handleCloseModal}>Cancel</Button>
             <Button type="submit">Save</Button>

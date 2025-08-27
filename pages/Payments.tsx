@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Header from '../components/Header';
 import DataTable, { type Column } from '../components/DataTable';
@@ -13,6 +12,7 @@ import type { Payment, Customer } from '../types';
 import { EditIcon, DeleteIcon, PlusIcon } from '../components/icons';
 import { formatDateForApi, formatDateTimeForInput } from '../services/datetime';
 import FilterPopover from '../components/FilterPopover';
+import EntityDocumentManager from '../components/EntityDocumentManager';
 
 // Form data shape for add/edit operations
 interface PaymentFormData {
@@ -209,6 +209,14 @@ const Payments: React.FC = () => {
           <Input label="Total Amount (KES)" id="total_amount" name="total_amount" type="number" step="0.01" value={currentItem.total_amount} onChange={handleChange} required />
 
           <Textarea label="Notes" id="notes" name="notes" value={currentItem.notes || ''} onChange={handleChange} rows={3} />
+
+          {currentItem.id && (
+              <EntityDocumentManager 
+                  entityId={currentItem.id} 
+                  entityTypeForUpload="CHEQUE"
+                  label="Cheques"
+              />
+          )}
 
           <div className="flex justify-end pt-6 space-x-2 border-t border-gray-200 dark:border-gray-700">
             <Button type="button" variant="secondary" onClick={handleCloseModal}>Cancel</Button>

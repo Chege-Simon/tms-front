@@ -124,6 +124,8 @@ export interface CreditNoteItem extends BaseEntity {
 
 // A generic type for polymorphic relations in Document
 export type Documentable = (Driver | Vehicle | Expense | Payment | object) & {
+    // FIX: Added 'id' to ensure that any documentable entity has an ID, which is required for filtering.
+    id: string | number;
     code?: string;
     // Driver properties
     name?: string; 

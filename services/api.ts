@@ -6,7 +6,11 @@ const request = async <T>(endpoint: string, options: RequestInit = {}): Promise<
     const token = getAuthToken();
     
     const headers = new Headers(options.headers || {});
-    headers.set('Content-Type', 'application/json');
+    // Do NOT set Content-Type if body is FormData, as the browser needs to set it with the correct boundary.
+    if (!(options.body instanceof FormData)) {
+      headers.set('Content-Type', 'application/json');
+    }
+    
     headers.set('Accept', 'application/json');
     if (token) {
         headers.set('Authorization', `Bearer ${token}`);
@@ -44,6 +48,7 @@ const api = {
     post: <T>(endpoint: string, body: any) => request<T>(endpoint, { method: 'POST', body: JSON.stringify(body) }),
     put: <T>(endpoint: string, body: any) => request<T>(endpoint, { method: 'PUT', body: JSON.stringify(body) }),
     del: <T>(endpoint:string) => request<T>(endpoint, { method: 'DELETE' }),
+    postForm: <T>(endpoint: string, body: FormData) => request<T>(endpoint, { method: 'POST', body }),
 };
 
 export default api;

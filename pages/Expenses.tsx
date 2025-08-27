@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Header from '../components/Header';
 import DataTable, { type Column } from '../components/DataTable';
@@ -12,6 +11,7 @@ import type { Expense, Vehicle, InvoiceItem } from '../types';
 import { EditIcon, DeleteIcon, PlusIcon } from '../components/icons';
 import { formatDateForApi, formatDateTimeForInput } from '../services/datetime';
 import FilterPopover from '../components/FilterPopover';
+import EntityDocumentManager from '../components/EntityDocumentManager';
 
 // Form data shape for add/edit operations
 interface ExpenseFormData {
@@ -231,6 +231,14 @@ const Expenses: React.FC = () => {
             <option value="">None</option>
             {invoiceItems?.map(item => <option key={item.id} value={item.id as string}>Inv: {item.invoice?.code} / Dest: {item.destination}</option>)}
           </Select>
+
+          {currentItem.id && (
+              <EntityDocumentManager 
+                  entityId={currentItem.id} 
+                  entityTypeForUpload="RECEIPT"
+                  label="Receipts"
+              />
+          )}
 
           <div className="flex justify-end pt-6 space-x-2 border-t border-gray-200 dark:border-gray-700">
             <Button type="button" variant="secondary" onClick={handleCloseModal}>Cancel</Button>
