@@ -11,6 +11,7 @@ import { useCrud, useFetch } from '../hooks/useCrud';
 import type { Expense, Vehicle, InvoiceItem } from '../types';
 import { EditIcon, DeleteIcon, PlusIcon } from '../components/icons';
 import { formatDateForApi, formatDateTimeForInput } from '../services/datetime';
+import FilterPopover from '../components/FilterPopover';
 
 // Form data shape for add/edit operations
 interface ExpenseFormData {
@@ -36,6 +37,13 @@ const emptyExpenseForm: Omit<ExpenseFormData, 'id'> = {
   amount: 0,
 };
 
+interface ExpenseFilters {
+    vehicle_id: string;
+    type: string;
+    expense_date_from: string;
+    expense_date_to: string;
+}
+
 const Expenses: React.FC = () => {
   const { items: expenses, addItem, updateItem, deleteItem, loading, error, pagination, refetch } = useCrud<Expense>('/expenses');
   const { data: vehicles, loading: vehiclesLoading } = useFetch<Vehicle[]>('/vehicles');
@@ -46,16 +54,21 @@ const Expenses: React.FC = () => {
   const [itemToDelete, setItemToDelete] = useState<Expense['id'] | null>(null);
   const [currentItem, setCurrentItem] = useState<ExpenseFormData>(emptyExpenseForm);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState<ExpenseFilters>({ vehicle_id: '', type: '', expense_date_from: '', expense_date_to: '' });
 
   const debouncedRefetch = useCallback(refetch, []);
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      const url = searchTerm ? `/expenses?search=${encodeURIComponent(searchTerm)}` : '/expenses';
-      debouncedRefetch(url);
+        const params = new URLSearchParams();
+        if (searchTerm) params.append('search', searchTerm);
+        Object.entries(filters).forEach(([key, value]) => {
+            if (value) params.append(key, value);
+        });
+        debouncedRefetch(`/expenses?${params.toString()}`);
     }, 300);
     return () => clearTimeout(handler);
-  }, [searchTerm, debouncedRefetch]);
+  }, [searchTerm, filters, debouncedRefetch]);
 
   const columns: Column<Expense>[] = useMemo(() => [
     { header: 'Code', accessor: 'code' },
@@ -145,14 +158,36 @@ const Expenses: React.FC = () => {
           <PlusIcon /> Add Expense
         </Button>
       </Header>
-      <div className="mb-4">
-        <Input
-          label="Search Expenses"
-          id="search"
-          placeholder="Search by code, type, vehicle..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+      <div className="flex justify-between mb-4 gap-4">
+        <div className="flex-grow">
+            <Input
+              label="Search Expenses"
+              id="search"
+              placeholder="Search by code, type, vehicle..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+        </div>
+        <div className="flex-shrink-0 self-end">
+            <FilterPopover onFilter={setFilters} initialFilters={filters}>
+                {(tempFilters, setTempFilters) => (
+                    <div className="space-y-4">
+                        <Select label="Vehicle" name="vehicle_id" value={tempFilters.vehicle_id} onChange={(e) => setTempFilters({...tempFilters, vehicle_id: e.target.value})} disabled={vehiclesLoading}>
+                            <option value="">All Vehicles</option>
+                            {vehicles?.map(v => <option key={v.id} value={v.id as string}>{v.registration_number}</option>)}
+                        </Select>
+                        <Select label="Expense Type" name="type" value={tempFilters.type} onChange={(e) => setTempFilters({...tempFilters, type: e.target.value})}>
+                            <option value="">All Types</option>
+                            {expenseTypes.map(t => <option key={t} value={t}>{t.replace(/_/g, ' ')}</option>)}
+                        </Select>
+                        <div className="grid grid-cols-2 gap-2">
+                            <Input label="From Date" name="expense_date_from" type="date" value={tempFilters.expense_date_from} onChange={(e) => setTempFilters({...tempFilters, expense_date_from: e.target.value})} />
+                            <Input label="To Date" name="expense_date_to" type="date" value={tempFilters.expense_date_to} onChange={(e) => setTempFilters({...tempFilters, expense_date_to: e.target.value})} />
+                        </div>
+                    </div>
+                )}
+            </FilterPopover>
+        </div>
       </div>
       <DataTable
         columns={columns}

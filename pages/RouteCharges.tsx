@@ -10,6 +10,7 @@ import Select from '../components/Select';
 import { useCrud, useFetch } from '../hooks/useCrud';
 import type { RouteCharge, VehicleType } from '../types';
 import { EditIcon, DeleteIcon, PlusIcon } from '../components/icons';
+import FilterPopover from '../components/FilterPopover';
 
 interface RouteChargeFormData {
   id?: string | number;
@@ -22,6 +23,10 @@ interface RouteChargeFormData {
 
 const emptyRouteChargeForm: Omit<RouteChargeFormData, 'id'> = { route: '', vehicle_type_id: '', trip_charge: 0, driver_wage: 0, loading_charge: 0 };
 
+interface RouteChargeFilters {
+  vehicle_type_id: string;
+}
+
 const RouteCharges: React.FC = () => {
   const { items: routeCharges, addItem, updateItem, deleteItem, loading, error, pagination, refetch } = useCrud<RouteCharge>('/route_charges');
   const { data: vehicleTypes, loading: vehicleTypesLoading } = useFetch<VehicleType[]>('/vehicle_types');
@@ -31,16 +36,24 @@ const RouteCharges: React.FC = () => {
   const [itemToDelete, setItemToDelete] = useState<RouteCharge['id'] | null>(null);
   const [currentItem, setCurrentItem] = useState<RouteChargeFormData>(emptyRouteChargeForm);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState<RouteChargeFilters>({ vehicle_type_id: '' });
 
   const debouncedRefetch = useCallback(refetch, []);
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      const url = searchTerm ? `/route_charges?search=${encodeURIComponent(searchTerm)}` : '/route_charges';
+      const params = new URLSearchParams();
+      if (searchTerm) {
+        params.append('search', searchTerm);
+      }
+      if (filters.vehicle_type_id) {
+        params.append('vehicle_type_id', filters.vehicle_type_id);
+      }
+      const url = `/route_charges?${params.toString()}`;
       debouncedRefetch(url);
     }, 300);
     return () => clearTimeout(handler);
-  }, [searchTerm, debouncedRefetch]);
+  }, [searchTerm, filters, debouncedRefetch]);
 
   const columns: Column<RouteCharge>[] = useMemo(() => [
     { header: 'Code', accessor: 'code' },
@@ -130,14 +143,34 @@ const RouteCharges: React.FC = () => {
             Add Route Charge
         </Button>
       </Header>
-       <div className="mb-4">
-        <Input 
-            label="Search Route Charges"
-            id="search"
-            placeholder="Search by route, code, or vehicle type..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-        />
+      <div className="flex justify-between mb-4 gap-4">
+        <div className="flex-grow">
+          <Input 
+              label="Search Route Charges"
+              id="search"
+              placeholder="Search by route, code, or vehicle type..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="flex-shrink-0 self-end">
+            <FilterPopover onFilter={setFilters} initialFilters={filters}>
+                {(tempFilters, setTempFilters) => (
+                    <Select
+                        label="Filter by Vehicle Type"
+                        name="vehicle_type_id"
+                        value={tempFilters.vehicle_type_id}
+                        onChange={(e) => setTempFilters({ ...tempFilters, vehicle_type_id: e.target.value })}
+                        disabled={vehicleTypesLoading}
+                    >
+                        <option value="">All Types</option>
+                        {vehicleTypes?.map((vt) => (
+                            <option key={vt.id} value={vt.id as string}>{vt.name}</option>
+                        ))}
+                    </Select>
+                )}
+            </FilterPopover>
+        </div>
       </div>
       <DataTable
         columns={columns}

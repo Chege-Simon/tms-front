@@ -11,6 +11,7 @@ import Textarea from '../components/Textarea';
 import { useCrud, useFetch } from '../hooks/useCrud';
 import type { Driver, Vehicle } from '../types';
 import { EditIcon, DeleteIcon, PlusIcon } from '../components/icons';
+import FilterPopover from '../components/FilterPopover';
 
 interface DriverFormData {
   id?: string | number;
@@ -23,6 +24,10 @@ interface DriverFormData {
 
 const emptyDriverForm: DriverFormData = { name: '', national_id: '', phone: '', vehicle_id: '', metadata: '{}' };
 
+interface DriverFilters {
+  vehicle_id: string;
+}
+
 const Drivers: React.FC = () => {
   const { items: drivers, addItem, updateItem, deleteItem, loading, error, pagination, refetch } = useCrud<Driver>('/drivers');
   const { data: vehicles, loading: vehiclesLoading } = useFetch<Vehicle[]>('/vehicles');
@@ -32,16 +37,24 @@ const Drivers: React.FC = () => {
   const [driverToDelete, setDriverToDelete] = useState<Driver['id'] | null>(null);
   const [currentItem, setCurrentItem] = useState<DriverFormData>(emptyDriverForm);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState<DriverFilters>({ vehicle_id: '' });
 
   const debouncedRefetch = useCallback(refetch, []);
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      const url = searchTerm ? `/drivers?search=${encodeURIComponent(searchTerm)}` : '/drivers';
+      const params = new URLSearchParams();
+      if (searchTerm) {
+        params.append('search', searchTerm);
+      }
+      if (filters.vehicle_id) {
+        params.append('vehicle_id', filters.vehicle_id);
+      }
+      const url = `/drivers?${params.toString()}`;
       debouncedRefetch(url);
     }, 300);
     return () => clearTimeout(handler);
-  }, [searchTerm, debouncedRefetch]);
+  }, [searchTerm, filters, debouncedRefetch]);
 
   const columns: Column<Driver>[] = useMemo(() => [
     { header: 'Code', accessor: 'code' },
@@ -127,14 +140,36 @@ const Drivers: React.FC = () => {
           Add Driver
         </Button>
       </Header>
-      <div className="mb-4">
-        <Input 
-            label="Search Drivers"
-            id="search"
-            placeholder="Search by name, national ID, phone, or code..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-        />
+      <div className="flex justify-between mb-4 gap-4">
+        <div className="flex-grow">
+          <Input 
+              label="Search Drivers"
+              id="search"
+              placeholder="Search by name, national ID, phone, or code..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="flex-shrink-0 self-end">
+            <FilterPopover onFilter={setFilters} initialFilters={filters}>
+              {(tempFilters, setTempFilters) => (
+                <Select
+                  label="Filter by Vehicle"
+                  name="vehicle_id"
+                  value={tempFilters.vehicle_id}
+                  onChange={(e) => setTempFilters({ ...tempFilters, vehicle_id: e.target.value })}
+                  disabled={vehiclesLoading}
+                >
+                  <option value="">All Vehicles</option>
+                  {vehicles?.map((v) => (
+                    <option key={v.id} value={v.id as string}>
+                      {v.registration_number} ({v.brand})
+                    </option>
+                  ))}
+                </Select>
+              )}
+            </FilterPopover>
+        </div>
       </div>
       <DataTable
         columns={columns}

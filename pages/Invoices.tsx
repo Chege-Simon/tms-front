@@ -1,5 +1,5 @@
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import DataTable, { type Column } from '../components/DataTable';
@@ -13,6 +13,7 @@ import Select from '../components/Select';
 import Input from '../components/Input';
 import api from '../services/api';
 import { notifyError } from '../services/notification';
+import FilterPopover from '../components/FilterPopover';
 
 const InvoiceInitialCreateModal: React.FC<{ isOpen: boolean, onClose: () => void }> = ({ isOpen, onClose }) => {
     const navigate = useNavigate();
@@ -118,13 +119,39 @@ const InvoiceInitialCreateModal: React.FC<{ isOpen: boolean, onClose: () => void
     );
 };
 
+interface InvoiceFilters {
+    customer_id: string;
+    vehicle_id: string;
+    status: string;
+    issue_date_from: string;
+    issue_date_to: string;
+}
 
 const Invoices: React.FC = () => {
-  const { items: invoices, deleteItem, loading, error } = useCrud<Invoice>('/invoices');
+  const { items: invoices, deleteItem, loading, error, pagination, refetch } = useCrud<Invoice>('/invoices');
+  const { data: customers, loading: customersLoading } = useFetch<Customer[]>('/customers');
+  const { data: vehicles, loading: vehiclesLoading } = useFetch<Vehicle[]>('/vehicles');
+  
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice['id'] | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState<InvoiceFilters>({ customer_id: '', vehicle_id: '', status: '', issue_date_from: '', issue_date_to: '' });
   const navigate = useNavigate();
+
+  const debouncedRefetch = useCallback(refetch, []);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+        const params = new URLSearchParams();
+        if (searchTerm) params.append('search', searchTerm);
+        Object.entries(filters).forEach(([key, value]) => {
+            if (value) params.append(key, value);
+        });
+        debouncedRefetch(`/invoices?${params.toString()}`);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchTerm, filters, debouncedRefetch]);
 
   const getStatusClass = (status: Invoice['status']) => {
     switch (status) {
@@ -149,6 +176,16 @@ const Invoices: React.FC = () => {
         setIsConfirmModalOpen(false);
     }
   };
+  
+  const PaginationControls = () => (
+    <div className="flex justify-between items-center mt-4 text-sm text-gray-600 dark:text-gray-400">
+      <span>Showing {pagination.meta?.from ?? 0} to {pagination.meta?.to ?? 0} of {pagination.meta?.total ?? 0} results</span>
+      <div className="space-x-2">
+        <Button onClick={() => refetch(pagination.links?.prev)} disabled={!pagination.links?.prev || loading} variant="secondary">Previous</Button>
+        <Button onClick={() => refetch(pagination.links?.next)} disabled={!pagination.links?.next || loading} variant="secondary">Next</Button>
+      </div>
+    </div>
+  );
 
   const columns: Column<Invoice>[] = useMemo(() => [
     { header: 'Number', accessor: 'code' },
@@ -172,6 +209,41 @@ const Invoices: React.FC = () => {
             Add Invoice
         </Button>
       </Header>
+      <div className="flex justify-between mb-4 gap-4">
+        <div className="flex-grow">
+          <Input 
+              label="Search Invoices"
+              id="search"
+              placeholder="Search by number, customer, vehicle..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="flex-shrink-0 self-end">
+            <FilterPopover onFilter={setFilters} initialFilters={filters}>
+              {(tempFilters, setTempFilters) => (
+                <div className="space-y-4">
+                  <Select label="Customer" name="customer_id" value={tempFilters.customer_id} onChange={(e) => setTempFilters({...tempFilters, customer_id: e.target.value})} disabled={customersLoading}>
+                    <option value="">All Customers</option>
+                    {customers?.map(c => <option key={c.id} value={c.id as string}>{c.name}</option>)}
+                  </Select>
+                  <Select label="Vehicle" name="vehicle_id" value={tempFilters.vehicle_id} onChange={(e) => setTempFilters({...tempFilters, vehicle_id: e.target.value})} disabled={vehiclesLoading}>
+                    <option value="">All Vehicles</option>
+                    {vehicles?.map(v => <option key={v.id} value={v.id as string}>{v.registration_number}</option>)}
+                  </Select>
+                  <Select label="Status" name="status" value={tempFilters.status} onChange={(e) => setTempFilters({...tempFilters, status: e.target.value})}>
+                    <option value="">All Statuses</option>
+                    {['Draft', 'Issued', 'Paid', 'Overdue', 'Cancelled'].map(s => <option key={s} value={s}>{s}</option>)}
+                  </Select>
+                   <div className="grid grid-cols-2 gap-2">
+                        <Input label="Issued From" name="issue_date_from" type="date" value={tempFilters.issue_date_from} onChange={(e) => setTempFilters({...tempFilters, issue_date_from: e.target.value})} />
+                        <Input label="Issued To" name="issue_date_to" type="date" value={tempFilters.issue_date_to} onChange={(e) => setTempFilters({...tempFilters, issue_date_to: e.target.value})} />
+                   </div>
+                </div>
+              )}
+            </FilterPopover>
+        </div>
+      </div>
       <DataTable
         columns={columns}
         data={invoices}
@@ -185,6 +257,7 @@ const Invoices: React.FC = () => {
           </>
         )}
       />
+      {pagination.meta?.total > 0 && <PaginationControls />}
       <InvoiceInitialCreateModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
       <ConfirmationModal
         isOpen={isConfirmModalOpen}

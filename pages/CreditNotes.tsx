@@ -13,6 +13,7 @@ import type { CreditNote, Customer } from '../types';
 import { EditIcon, DeleteIcon, PlusIcon, EyeIcon } from '../components/icons';
 import api from '../services/api';
 import { notifyError } from '../services/notification';
+import FilterPopover from '../components/FilterPopover';
 
 const CreditNoteInitialCreateModal: React.FC<{ isOpen: boolean, onClose: () => void }> = ({ isOpen, onClose }) => {
     const navigate = useNavigate();
@@ -81,23 +82,37 @@ const CreditNoteInitialCreateModal: React.FC<{ isOpen: boolean, onClose: () => v
     );
 };
 
+interface CreditNoteFilters {
+    customer_id: string;
+    status: string;
+    issue_date_from: string;
+    issue_date_to: string;
+}
+
 const CreditNotes: React.FC = () => {
     const { items: creditNotes, deleteItem, loading, error, pagination, refetch } = useCrud<CreditNote>('/credit_notes');
+    const { data: customers, loading: customersLoading } = useFetch<Customer[]>('/customers');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<CreditNote['id'] | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [filters, setFilters] = useState<CreditNoteFilters>({ customer_id: '', status: '', issue_date_from: '', issue_date_to: '' });
     const navigate = useNavigate();
 
     const debouncedRefetch = useCallback(refetch, []);
 
     useEffect(() => {
         const handler = setTimeout(() => {
-            const url = searchTerm ? `/credit_notes?search=${encodeURIComponent(searchTerm)}` : '/credit_notes';
+            const params = new URLSearchParams();
+            if (searchTerm) params.append('search', searchTerm);
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value) params.append(key, value);
+            });
+            const url = `/credit_notes?${params.toString()}`;
             debouncedRefetch(url);
         }, 300);
         return () => clearTimeout(handler);
-    }, [searchTerm, debouncedRefetch]);
+    }, [searchTerm, filters, debouncedRefetch]);
 
     const getStatusClass = (status: CreditNote['status']) => {
         switch (status) {
@@ -158,14 +173,36 @@ const CreditNotes: React.FC = () => {
                     <PlusIcon /> Add Credit Note
                 </Button>
             </Header>
-            <div className="mb-4">
-                <Input
-                    label="Search Credit Notes"
-                    id="search"
-                    placeholder="Search by number, customer, amount..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
+            <div className="flex justify-between mb-4 gap-4">
+                <div className="flex-grow">
+                  <Input
+                      label="Search Credit Notes"
+                      id="search"
+                      placeholder="Search by number, customer, amount..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <div className="flex-shrink-0 self-end">
+                    <FilterPopover onFilter={setFilters} initialFilters={filters}>
+                        {(tempFilters, setTempFilters) => (
+                            <div className="space-y-4">
+                                <Select label="Customer" name="customer_id" value={tempFilters.customer_id} onChange={(e) => setTempFilters({...tempFilters, customer_id: e.target.value})} disabled={customersLoading}>
+                                    <option value="">All Customers</option>
+                                    {customers?.map(c => <option key={c.id} value={c.id as string}>{c.name}</option>)}
+                                </Select>
+                                <Select label="Status" name="status" value={tempFilters.status} onChange={(e) => setTempFilters({...tempFilters, status: e.target.value})}>
+                                    <option value="">All Statuses</option>
+                                    {['Draft', 'Issued', 'Applied'].map(s => <option key={s} value={s}>{s}</option>)}
+                                </Select>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <Input label="Issued From" name="issue_date_from" type="date" value={tempFilters.issue_date_from} onChange={(e) => setTempFilters({...tempFilters, issue_date_from: e.target.value})} />
+                                    <Input label="Issued To" name="issue_date_to" type="date" value={tempFilters.issue_date_to} onChange={(e) => setTempFilters({...tempFilters, issue_date_to: e.target.value})} />
+                                </div>
+                            </div>
+                        )}
+                    </FilterPopover>
+                </div>
             </div>
             <DataTable
                 columns={columns}

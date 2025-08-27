@@ -11,8 +11,13 @@ import { useCrud } from '../hooks/useCrud';
 import type { Customer } from '../types';
 import { EditIcon, DeleteIcon, PlusIcon } from '../components/icons';
 import CountrySelect from '../components/CountrySelect';
+import FilterPopover from '../components/FilterPopover';
 
 const emptyCustomer: Omit<Customer, 'id' | 'created_at' | 'updated_at'> = { name: '', phone: '', address: '', location: '', country: '', metadata: '{}' };
+
+interface CustomerFilters {
+  country: string;
+}
 
 const Customers: React.FC = () => {
   const { items: customers, addItem, updateItem, deleteItem, loading, error, pagination, refetch } = useCrud<Customer>('/customers');
@@ -21,16 +26,25 @@ const Customers: React.FC = () => {
   const [customerToDelete, setCustomerToDelete] = useState<Customer['id'] | null>(null);
   const [currentItem, setCurrentItem] = useState<Customer | Omit<Customer, 'id' | 'created_at' | 'updated_at'>>(emptyCustomer);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState<CustomerFilters>({ country: '' });
 
   const debouncedRefetch = useCallback(refetch, []);
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      const url = searchTerm ? `/customers?search=${encodeURIComponent(searchTerm)}` : '/customers';
+      const params = new URLSearchParams();
+      if (searchTerm) {
+        params.append('search', searchTerm);
+      }
+      if (filters.country) {
+        params.append('country', filters.country);
+      }
+      const queryString = params.toString();
+      const url = `/customers${queryString ? `?${queryString}` : ''}`;
       debouncedRefetch(url);
     }, 300);
     return () => clearTimeout(handler);
-  }, [searchTerm, debouncedRefetch]);
+  }, [searchTerm, filters, debouncedRefetch]);
 
 
   const columns: Column<Customer>[] = useMemo(() => [
@@ -108,14 +122,26 @@ const Customers: React.FC = () => {
           Add Customer
         </Button>
       </Header>
-      <div className="mb-4">
-        <Input 
-            label="Search Customers"
-            id="search"
-            placeholder="Search by name, phone..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-        />
+      <div className="flex justify-between mb-4 gap-4">
+        <div className="flex-grow">
+          <Input 
+              label="Search Customers"
+              id="search"
+              placeholder="Search by name, phone..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="flex-shrink-0 self-end">
+          <FilterPopover onFilter={setFilters} initialFilters={filters}>
+            {(tempFilters, setTempFilters) => (
+              <CountrySelect
+                value={tempFilters.country}
+                onChange={(e) => setTempFilters({ ...tempFilters, country: e.target.value })}
+              />
+            )}
+          </FilterPopover>
+        </div>
       </div>
       <DataTable
         columns={columns}

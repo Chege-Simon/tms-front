@@ -10,8 +10,13 @@ import Textarea from '../components/Textarea';
 import { useCrud } from '../hooks/useCrud';
 import type { VehicleType } from '../types';
 import { EditIcon, DeleteIcon, PlusIcon } from '../components/icons';
+import FilterPopover from '../components/FilterPopover';
 
 const emptyVehicleType: Omit<VehicleType, 'id' | 'created_at' | 'updated_at' | 'code'> = { name: '', size: '', metadata: '{}' };
+
+interface VehicleTypeFilters {
+  size: string;
+}
 
 const VehicleTypes: React.FC = () => {
   const { items: vehicleTypes, addItem, updateItem, deleteItem, loading, error, pagination, refetch } = useCrud<VehicleType>('/vehicle_types');
@@ -20,16 +25,20 @@ const VehicleTypes: React.FC = () => {
   const [itemToDelete, setItemToDelete] = useState<VehicleType['id'] | null>(null);
   const [currentItem, setCurrentItem] = useState<VehicleType | Omit<VehicleType, 'id' | 'created_at' | 'updated_at' | 'code'>>(emptyVehicleType);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState<VehicleTypeFilters>({ size: '' });
 
   const debouncedRefetch = useCallback(refetch, []);
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      const url = searchTerm ? `/vehicle_types?search=${encodeURIComponent(searchTerm)}` : '/vehicle_types';
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (filters.size) params.append('size', filters.size);
+      const url = `/vehicle_types?${params.toString()}`;
       debouncedRefetch(url);
     }, 300);
     return () => clearTimeout(handler);
-  }, [searchTerm, debouncedRefetch]);
+  }, [searchTerm, filters, debouncedRefetch]);
 
   const columns: Column<VehicleType>[] = useMemo(() => [
     { header: 'Code', accessor: 'code' },
@@ -103,14 +112,29 @@ const VehicleTypes: React.FC = () => {
           Add Vehicle Type
         </Button>
       </Header>
-      <div className="mb-4">
-        <Input 
-            label="Search Vehicle Types"
-            id="search"
-            placeholder="Search by name or code..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-        />
+      <div className="flex justify-between mb-4 gap-4">
+        <div className="flex-grow">
+          <Input 
+              label="Search Vehicle Types"
+              id="search"
+              placeholder="Search by name or code..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="flex-shrink-0 self-end">
+            <FilterPopover onFilter={setFilters} initialFilters={filters}>
+                {(tempFilters, setTempFilters) => (
+                    <Input
+                        label="Filter by Size"
+                        name="size"
+                        placeholder="e.g., like FH"
+                        value={tempFilters.size}
+                        onChange={(e) => setTempFilters({ ...tempFilters, size: e.target.value })}
+                    />
+                )}
+            </FilterPopover>
+        </div>
       </div>
       <DataTable
         columns={columns}
