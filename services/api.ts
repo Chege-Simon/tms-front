@@ -27,7 +27,7 @@ const request = async <T>(endpoint: string, options: RequestInit = {}): Promise<
     if (response.status === 401) {
         localStorage.removeItem('authToken');
         // Use replace to prevent the user from navigating back to the broken page
-        window.location.replace('/#/login'); 
+        window.location.replace('/login'); 
         // Throw an error to prevent further processing in the call stack
         throw new Error('Session expired. Redirecting to login.');
     }

@@ -82,8 +82,8 @@ const Expenses: React.FC = () => {
   const handleEdit = (expense: Expense) => {
     setCurrentItem({
       id: expense.id,
-      vehicle_id: expense.vehicle?.id as string || expense.vehicle_id,
-      invoice_item_id: expense.invoice_item?.id as string || expense.invoice_item_id,
+      vehicle_id: String(expense.vehicle?.id || expense.vehicle_id),
+      invoice_item_id: expense.invoice_item_id ? String(expense.invoice_item_id) : null,
       type: expense.type,
       expense_date: formatDateTimeForInput(expense.expense_date),
       currency: 'KES',

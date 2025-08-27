@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Header from '../components/Header';
 import DataTable, { type Column } from '../components/DataTable';
@@ -72,7 +71,7 @@ const RouteCharges: React.FC = () => {
       trip_charge: parseFloat(routeCharge.trip_charge) || 0,
       driver_wage: parseFloat(routeCharge.driver_wage) || 0,
       loading_charge: parseFloat(routeCharge.loading_charge) || 0,
-      vehicle_type_id: routeCharge.vehicle_type?.id || routeCharge.vehicle_type_id,
+      vehicle_type_id: String(routeCharge.vehicle_type?.id || routeCharge.vehicle_type_id),
     });
     setIsModalOpen(true);
   };

@@ -1,18 +1,10 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
   UserCircleIcon,
-  SettingsIcon,
-  ShieldCheckIcon,
-  BellIcon,
-  BookOpenIcon,
-  HelpCircleIcon,
-  PowerIcon,
   LogoutIcon,
 } from './icons';
-import ToggleSwitch from './ToggleSwitch';
 
 const UserProfileDropdown: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -73,24 +65,6 @@ const UserProfileDropdown: React.FC = () => {
           <hr className="border-gray-200 dark:border-gray-700 my-1" />
           <div className="space-y-1 py-1">
             <DropdownItem to="/account" icon={<UserCircleIcon />} label="Account" />
-            <DropdownItem to="/settings" icon={<SettingsIcon />} label="Settings" />
-            <DropdownItem to="/privacy" icon={<ShieldCheckIcon />} label="Privacy" />
-            <DropdownItem to="/notifications" icon={<BellIcon />} label="Notifications" />
-          </div>
-          <hr className="border-gray-200 dark:border-gray-700 my-1" />
-           <div className="space-y-1 py-1">
-            <DropdownItem to="/help-guide" icon={<BookOpenIcon />} label="Help Guide" />
-            <DropdownItem to="/help-center" icon={<HelpCircleIcon />} label="Help Center" />
-          </div>
-          <hr className="border-gray-200 dark:border-gray-700 my-1" />
-          <div className="py-1">
-            <div className="flex items-center justify-between px-4 py-2 text-sm text-gray-700 dark:text-gray-200">
-                <div className="flex items-center">
-                    <span className="mr-3 text-gray-400 dark:text-gray-500"><PowerIcon /></span>
-                    Limited Access
-                </div>
-                <ToggleSwitch />
-            </div>
           </div>
           <hr className="border-gray-200 dark:border-gray-700 my-1" />
           <div className="py-1">
