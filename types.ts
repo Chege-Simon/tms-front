@@ -122,13 +122,21 @@ export interface CreditNoteItem extends BaseEntity {
   credit_note?: CreditNote;
 }
 
+// A generic type for polymorphic relations in Document
+export type Documentable = (Driver | Vehicle | Expense | Payment | object) & {
+    code?: string;
+    // Driver properties
+    name?: string; 
+    // Vehicle properties
+    registration_number?: string; 
+};
+
 export interface Document extends BaseEntity {
-  name: string;
-  type: 'LOG_BOOK' | 'LICENSE' | 'IDENTIFICATION' | 'RECEIPT' | 'CHEQUE' | 'INSURANCE';
-  issue_date: string;
-  expiry_date: string;
-  file_url: string;
-  owner_id: number; // Can be Driver ID or Vehicle ID
+  code?: string;
+  file_type: 'LOG_BOOK' | 'LICENSE' | 'IDENTIFICATION' | 'RECEIPT' | 'CHEQUE' | 'INSURANCE';
+  file_path: string;
+  upload_date: string;
+  documentable?: Documentable;
 }
 
 export interface Expense extends BaseEntity {

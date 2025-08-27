@@ -115,7 +115,7 @@ const RouteCharges: React.FC = () => {
     const numericFields = ['trip_charge', 'driver_wage', 'loading_charge'];
     setCurrentItem(prev => ({
       ...prev,
-      [name]: numericFields.includes(name) ? parseFloat(value) || 0 : value,
+      [name]: numericFields.includes(name) ? Number(value) : value,
     }));
   };
   

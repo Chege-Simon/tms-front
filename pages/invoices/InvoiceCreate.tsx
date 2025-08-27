@@ -44,9 +44,9 @@ const InvoiceItemModal: React.FC<{
                     ...emptyItem,
                     ...currentItem,
                     // FIX: Explicitly cast potential number IDs to string to match form state type.
-                    driver_id: String(currentItem.driver?.id || ''),
+                    driver_id: String(currentItem.driver?.id || currentItem.driver_id || ''),
                     // FIX: Explicitly cast potential number IDs to string to match form state type.
-                    route_charge_id: String(currentItem.route_charge?.id || ''),
+                    route_charge_id: String(currentItem.route_charge?.id || currentItem.route_charge_id || ''),
                     delivery_date: currentItem.delivery_date ? new Date(currentItem.delivery_date).toISOString().split('T')[0] : emptyItem.delivery_date,
                 });
             } else {
@@ -74,7 +74,7 @@ const InvoiceItemModal: React.FC<{
             }
         } else {
             const isNumeric = ['actual_trip_charge', 'actual_driver_charge', 'actual_loading_charge'].includes(name);
-            setItemData(prev => ({ ...prev, [name]: isNumeric ? parseFloat(value) || 0 : value }));
+            setItemData(prev => ({ ...prev, [name]: isNumeric ? Number(value) : value }));
         }
     };
 
