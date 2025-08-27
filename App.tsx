@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
@@ -13,6 +14,8 @@ import Invoices from './pages/Invoices';
 import InvoiceCreate from './pages/invoices/InvoiceCreate';
 import InvoiceDetail from './pages/invoices/InvoiceDetail';
 import CreditNotes from './pages/CreditNotes';
+import CreditNoteDetail from './pages/credit-notes/CreditNoteDetail';
+import CreditNoteCreate from './pages/credit-notes/CreditNoteCreate';
 import VehicleTypes from './pages/VehicleTypes';
 import Documents from './pages/Documents';
 import Expenses from './pages/Expenses';
@@ -39,6 +42,8 @@ const App: React.FC = () => {
                 <Route path="/invoices/:id" element={<InvoiceDetail />} />
                 <Route path="/invoices/:id/edit" element={<InvoiceCreate />} />
                 <Route path="/credit-notes" element={<CreditNotes />} />
+                <Route path="/credit-notes/:id" element={<CreditNoteDetail />} />
+                <Route path="/credit-notes/:id/edit" element={<CreditNoteCreate />} />
                 <Route path="/vehicle-types" element={<VehicleTypes />} />
                 <Route path="/documents" element={<Documents />} />
                 <Route path="/expenses" element={<Expenses />} />

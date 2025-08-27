@@ -106,20 +106,20 @@ export interface Invoice extends BaseEntity {
 }
 
 export interface CreditNote extends BaseEntity {
-  credit_note_number: string;
-  invoice_id: number;
-  customer_id: number;
+  code?: string;
+  customer_id: string;
   issue_date: string;
   total_amount: number;
-  reason: string;
+  currency: 'KES';
+  status: 'Draft' | 'Issued' | 'Applied';
+  customer?: Customer;
 }
 
 export interface CreditNoteItem extends BaseEntity {
-  credit_note_id: number;
+  credit_note_id: string;
   description: string;
-  quantity: number;
-  unit_price: number;
-  total: number;
+  credit_note_amount: number;
+  credit_note?: CreditNote;
 }
 
 export interface Document extends BaseEntity {
