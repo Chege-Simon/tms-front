@@ -5,13 +5,15 @@ import DataTable, { type Column } from '../components/DataTable';
 import Button from '../components/Button';
 import ConfirmationModal from '../components/ConfirmationModal';
 import { useCrud } from '../hooks/useCrud';
-import type { Document, Documentable } from '../types';
+import type { Document, Ownable } from '../types';
 import { EditIcon, DeleteIcon } from '../components/icons';
 import Input from '../components/Input';
 import FilterPopover from '../components/FilterPopover';
 import Select from '../components/Select';
 import Modal from '../components/Modal';
-import { formatDateTimeForInput, formatDateForApi } from '../services/datetime';
+import { formatDateTimeForInput } from '../services/datetime';
+import api from '../services/api';
+import { notifyError } from '../services/notification';
 
 const documentTypes: Array<Document['file_type']> = ['LOG_BOOK', 'LICENSE', 'IDENTIFICATION', 'RECEIPT', 'CHEQUE', 'INSURANCE'];
 
@@ -25,7 +27,6 @@ interface DocumentFormData {
     id?: string | number;
     file_type: Document['file_type'];
     upload_date: string;
-    file_path: string;
 }
 
 const Documents: React.FC = () => {
@@ -34,6 +35,7 @@ const Documents: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<DocumentFormData | null>(null);
+  const [fileToReplace, setFileToReplace] = useState<File | null>(null);
   const [itemToDelete, setItemToDelete] = useState<Document['id'] | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState<DocumentFilters>({ file_type: '', upload_date_from: '', upload_date_to: '' });
@@ -52,12 +54,12 @@ const Documents: React.FC = () => {
     return () => clearTimeout(handler);
   }, [searchTerm, filters, debouncedRefetch]);
 
-  const getAssociatedTo = (doc: Documentable | undefined) => {
-    if (!doc || !doc.code) return 'N/A';
+  const getAssociatedTo = (owner: Ownable | undefined) => {
+    if (!owner || !owner.code) return 'N/A';
     
-    const code = doc.code;
-    if (code.startsWith('DRI-')) return `Driver: ${doc.name} (${code})`;
-    if (code.startsWith('VEH-')) return `Vehicle: ${doc.registration_number} (${code})`;
+    const code = owner.code;
+    if (code.startsWith('DRI-')) return `Driver: ${owner.name} (${code})`;
+    if (code.startsWith('VEH-')) return `Vehicle: ${owner.registration_number} (${code})`;
     if (code.startsWith('EXP-')) return `Expense: ${code}`;
     if (code.startsWith('PAY-')) return `Payment: ${code}`;
 
@@ -69,8 +71,8 @@ const Documents: React.FC = () => {
         id: doc.id,
         file_type: doc.file_type,
         upload_date: formatDateTimeForInput(doc.upload_date),
-        file_path: doc.file_path,
     });
+    setFileToReplace(null);
     setIsModalOpen(true);
   };
   
@@ -89,16 +91,29 @@ const Documents: React.FC = () => {
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!itemToEdit) return;
+    if (!itemToEdit || !itemToEdit.id) return;
     
-    const payload = {
-        ...itemToEdit,
-        upload_date: formatDateForApi(itemToEdit.upload_date),
-    };
-    
-    await updateItem(payload as any);
-    setIsModalOpen(false);
-    setItemToEdit(null);
+    try {
+        if (fileToReplace) {
+            // If there's a file, we must use FormData
+            const formData = new FormData();
+            formData.append('file', fileToReplace);
+            formData.append('file_type', itemToEdit.file_type);
+            // The backend update endpoint does not handle file uploads,
+            // so we use a POST request with a _method field, a common pattern for file updates.
+            formData.append('_method', 'PUT');
+            await api.postForm(`/documents/${itemToEdit.id}`, formData);
+        } else {
+            // If only metadata changed, use a standard JSON request.
+            await updateItem(itemToEdit as any);
+        }
+        setIsModalOpen(false);
+        setItemToEdit(null);
+        setFileToReplace(null);
+    } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to update document.';
+        notifyError(message);
+    }
   }
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -107,10 +122,16 @@ const Documents: React.FC = () => {
     setItemToEdit(prev => prev ? { ...prev, [name]: value } : null);
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files && e.target.files[0]) {
+          setFileToReplace(e.target.files[0]);
+      }
+  };
+
   const columns: Column<Document>[] = useMemo(() => [
     { header: 'Code', accessor: 'code' },
     { header: 'File Type', accessor: (doc) => doc.file_type.replace(/_/g, ' ') },
-    { header: 'Associated To', accessor: (doc) => getAssociatedTo(doc.documentable) },
+    { header: 'Associated To', accessor: (doc) => getAssociatedTo(doc.owner) },
     { header: 'Upload Date', accessor: (doc) => new Date(doc.upload_date).toLocaleString() },
     { header: 'File', accessor: (doc) => <a href={doc.file_path} target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 hover:underline">View Document</a> },
   ], []);
@@ -183,8 +204,7 @@ const Documents: React.FC = () => {
                 <Select label="File Type" name="file_type" value={itemToEdit.file_type} onChange={handleChange} required>
                     {documentTypes.map(type => <option key={type} value={type}>{type.replace(/_/g, ' ')}</option>)}
                 </Select>
-                <Input label="Upload Date" name="upload_date" type="datetime-local" value={itemToEdit.upload_date} onChange={handleChange} required />
-                <Input label="File Path" name="file_path" value={itemToEdit.file_path} readOnly disabled />
+                <Input label="Replace File (Optional)" name="file" type="file" onChange={handleFileChange} />
                  <div className="flex justify-end pt-6 space-x-2 border-t border-gray-200 dark:border-gray-700">
                     <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>Cancel</Button>
                     <Button type="submit">Save Changes</Button>

@@ -123,8 +123,7 @@ export interface CreditNoteItem extends BaseEntity {
 }
 
 // A generic type for polymorphic relations in Document
-export type Documentable = (Driver | Vehicle | Expense | Payment | object) & {
-    // FIX: Added 'id' to ensure that any documentable entity has an ID, which is required for filtering.
+export type Ownable = (Driver | Vehicle | Expense | Payment | object) & {
     id: string | number;
     code?: string;
     // Driver properties
@@ -138,7 +137,7 @@ export interface Document extends BaseEntity {
   file_type: 'LOG_BOOK' | 'LICENSE' | 'IDENTIFICATION' | 'RECEIPT' | 'CHEQUE' | 'INSURANCE';
   file_path: string;
   upload_date: string;
-  documentable?: Documentable;
+  owner?: Ownable;
 }
 
 export interface Expense extends BaseEntity {

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import type { Document } from '../types';
 import { useFetch } from '../hooks/useCrud';
@@ -6,7 +7,6 @@ import { notifySuccess, notifyError } from '../services/notification';
 import Button from './Button';
 import { DeleteIcon } from './icons';
 import Input from './Input';
-import { formatDateForApi } from '../services/datetime';
 
 interface EntityDocumentManagerProps {
   entityId: string | number;
@@ -23,7 +23,7 @@ const EntityDocumentManager: React.FC<EntityDocumentManagerProps> = ({ entityId,
 
   useEffect(() => {
     if (allDocuments) {
-      const filteredDocs = allDocuments.filter(doc => doc.documentable?.id === entityId);
+      const filteredDocs = allDocuments.filter(doc => doc.owner?.id === entityId);
       setDocuments(filteredDocs);
     }
   }, [allDocuments, entityId]);
@@ -44,10 +44,6 @@ const EntityDocumentManager: React.FC<EntityDocumentManagerProps> = ({ entityId,
     const formData = new FormData();
     formData.append('file', file);
     formData.append('file_type', entityTypeForUpload);
-    formData.append('upload_date', formatDateForApi(new Date().toISOString()));
-    // Backend controller requires a `file_path` field, which is illogical for an upload.
-    // Sending a dummy value to pass validation, assuming backend will ignore it and use the uploaded file.
-    formData.append('file_path', 'dummy.path'); 
 
     try {
       await api.postForm(`/documents/${entityId}`, formData);
