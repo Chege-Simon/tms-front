@@ -1,5 +1,6 @@
 
 
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
@@ -22,6 +23,7 @@ import Expenses from './pages/Expenses';
 import Users from './pages/Users';
 import Payments from './pages/Payments';
 import Journals from './pages/Journals';
+import Account from './pages/Account';
 
 const App: React.FC = () => {
   return (
@@ -50,6 +52,8 @@ const App: React.FC = () => {
                 <Route path="/users" element={<Users />} />
                 <Route path="/payments" element={<Payments />} />
                 <Route path="/journals" element={<Journals />} />
+                <Route path="/account" element={<Account />} />
+                <Route path="/settings" element={<Account />} />
                 <Route path="/" element={<Dashboard />} />
               </Routes>
             </Layout>
