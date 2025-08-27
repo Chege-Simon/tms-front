@@ -23,7 +23,7 @@ const CreditNotes: React.FC = () => {
     { header: 'Invoice #', accessor: 'invoice_id' },
     { header: 'Customer', accessor: (cn) => customerMap[cn.customer_id] || 'N/A' },
     { header: 'Issue Date', accessor: 'issue_date' },
-    { header: 'Amount', accessor: (cn) => `KES ${cn.total_amount.toFixed(2)}` },
+    { header: 'Amount', accessor: (cn) => `KES ${(cn.total_amount || 0).toFixed(2)}` },
     { header: 'Reason', accessor: 'reason' },
   ], [customerMap]);
   

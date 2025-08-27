@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import type { Invoice, InvoiceItem, Driver, RouteCharge } from '../../types';
@@ -23,7 +24,7 @@ const InvoiceItemModal: React.FC<{
     const { data: drivers, loading: driversLoading } = useFetch<Driver[]>('/drivers');
     const { data: routeCharges, loading: chargesLoading } = useFetch<RouteCharge[]>('/route_charges');
 
-    const emptyItem: Omit<InvoiceItem, 'id' | 'uuid' | 'created_at' | 'updated_at' | 'invoice_id' | 'code'> = {
+    const emptyItem: Omit<InvoiceItem, 'id' | 'created_at' | 'updated_at' | 'invoice_id' | 'code'> = {
         driver_id: '',
         route_charge_id: '',
         delivery_date: new Date().toISOString().split('T')[0],
@@ -172,7 +173,7 @@ const InvoiceEdit: React.FC = () => {
         { header: 'Destination', accessor: 'destination'},
         { header: 'Driver', accessor: (item) => item.driver?.name || 'N/A' },
         { header: 'Route', accessor: (item) => item.route_charge?.route || 'N/A' },
-        { header: 'Trip Charge', accessor: (item) => `${invoice?.currency || 'KES'} ${item.actual_trip_charge.toFixed(2)}` },
+        { header: 'Trip Charge', accessor: (item) => `${invoice?.currency || 'KES'} ${(item.actual_trip_charge || 0).toFixed(2)}` },
     ], [invoice?.currency]);
 
     if (invoiceLoading) return <div>Loading Invoice...</div>;
@@ -197,7 +198,7 @@ const InvoiceEdit: React.FC = () => {
                     <div><strong className="block text-gray-500">Issue Date:</strong> {new Date(invoice.issue_date).toLocaleDateString()}</div>
                     <div><strong className="block text-gray-500">Due Date:</strong> {new Date(invoice.due_date).toLocaleDateString()}</div>
                     <div><strong className="block text-gray-500">Status:</strong> {invoice.status}</div>
-                    <div><strong className="block text-gray-500">Total Amount:</strong> <span className="font-bold text-base">{invoice.currency} {invoice.total_amount.toFixed(2)}</span></div>
+                    <div><strong className="block text-gray-500">Total Amount:</strong> <span className="font-bold text-base">{invoice.currency} {(invoice.total_amount || 0).toFixed(2)}</span></div>
                 </div>
             </div>
 

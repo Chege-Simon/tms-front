@@ -58,8 +58,8 @@ const Payments: React.FC = () => {
 
   const handleEdit = (payment: Payment) => {
     setCurrentItem({
-      id: payment.uuid || payment.id,
-      customer_id: payment.customer?.uuid || payment.customer_id,
+      id: payment.id,
+      customer_id: (payment.customer?.id as string) || payment.customer_id,
       payment_date: formatDateTimeForInput(payment.payment_date),
       currency: 'KES',
       total_amount: payment.total_amount,
@@ -71,7 +71,7 @@ const Payments: React.FC = () => {
   const handleAddNew = () => {
     setCurrentItem({
       ...emptyPaymentForm,
-      customer_id: customers?.[0]?.uuid || '',
+      customer_id: (customers?.[0]?.id as string) || '',
     });
     setIsModalOpen(true);
   };
@@ -142,7 +142,7 @@ const Payments: React.FC = () => {
         renderActions={(payment) => (
           <>
             <Button variant="icon" onClick={() => handleEdit(payment)}><EditIcon /></Button>
-            <Button variant="icon" onClick={() => handleDelete(payment.uuid || payment.id)}><DeleteIcon /></Button>
+            <Button variant="icon" onClick={() => handleDelete(payment.id)}><DeleteIcon /></Button>
           </>
         )}
       />
@@ -152,7 +152,7 @@ const Payments: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <Select label="Customer" name="customer_id" id="customer_id" value={currentItem.customer_id} onChange={handleChange} required disabled={customersLoading}>
             <option value="">Select a customer</option>
-            {customers?.map(c => <option key={c.uuid} value={c.uuid!}>{c.name}</option>)}
+            {customers?.map(c => <option key={c.id} value={c.id as string}>{c.name}</option>)}
           </Select>
 
           <Input label="Payment Date & Time" id="payment_date" name="payment_date" type="datetime-local" value={currentItem.payment_date} onChange={handleChange} required />

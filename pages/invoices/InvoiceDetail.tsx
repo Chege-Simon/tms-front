@@ -40,10 +40,10 @@ const InvoiceDetail: React.FC = () => {
         const payload = {
             issue_date: formatDateForApi(invoice.issue_date),
             due_date: formatDateForApi(invoice.due_date),
-            customer_id: invoice.customer?.uuid || invoice.customer_id,
-            vehicle_id: invoice.vehicle?.uuid || invoice.vehicle_id,
+            customer_id: invoice.customer?.id || invoice.customer_id,
+            vehicle_id: invoice.vehicle?.id || invoice.vehicle_id,
             currency: invoice.currency,
-            total_amount: invoice.total_amount,
+            total_amount: invoice.total_amount || 0,
             status: newStatus,
         };
         
@@ -130,14 +130,14 @@ const InvoiceDetail: React.FC = () => {
                                 </thead>
                                 <tbody className="divide-y dark:divide-gray-600">
                                     {invoiceItems?.map(item => (
-                                        <tr key={item.uuid || item.id}>
+                                        <tr key={item.id}>
                                             <td className="p-3">{new Date(item.delivery_date).toLocaleDateString()}</td>
                                             <td className="p-3">
                                                 <p className="font-medium text-gray-800 dark:text-gray-200">{item.destination}</p>
                                                 {item.route_charge && <p className="text-xs text-gray-500 dark:text-gray-400">{item.route_charge.route}</p>}
                                             </td>
                                             <td className="p-3">{item.driver?.name}</td>
-                                            <td className="p-3 text-right font-medium">{invoice.currency} {item.actual_trip_charge.toFixed(2)}</td>
+                                            <td className="p-3 text-right font-medium">{invoice.currency} {(item.actual_trip_charge || 0).toFixed(2)}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -148,7 +148,7 @@ const InvoiceDetail: React.FC = () => {
                         <div className="w-full max-w-xs space-y-2 text-sm">
                             <div className="flex justify-between font-bold text-lg text-gray-800 dark:text-white border-t pt-2 mt-2 dark:border-gray-600">
                                 <span>Order total</span>
-                                <span>{invoice.currency} {invoice.total_amount.toFixed(2)}</span>
+                                <span>{invoice.currency} {(invoice.total_amount || 0).toFixed(2)}</span>
                             </div>
                         </div>
                     </section>
@@ -177,7 +177,7 @@ const InvoiceDetail: React.FC = () => {
                             <p className="text-sm text-gray-500 dark:text-gray-400">Invoice to:</p>
                             <p className="font-semibold text-gray-800 dark:text-white">{invoice.customer?.name}</p>
                         </div>
-                        <p className="text-4xl font-bold text-gray-800 dark:text-white">{invoice.currency} {invoice.total_amount.toFixed(2)}</p>
+                        <p className="text-4xl font-bold text-gray-800 dark:text-white">{invoice.currency} {(invoice.total_amount || 0).toFixed(2)}</p>
                     </div>
                      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg space-y-3 text-sm">
                         <h3 className="font-semibold text-lg text-gray-800 dark:text-white">Details</h3>
@@ -185,32 +185,11 @@ const InvoiceDetail: React.FC = () => {
                         <div className="flex justify-between"><span className="text-gray-500 dark:text-gray-400">Payment method:</span><span className="font-medium">Bank Transfer</span></div>
                         <div className="flex justify-between"><span className="text-gray-500 dark:text-gray-400">Currency:</span><span className="font-medium">{invoice.currency}</span></div>
                     </div>
-                     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg text-sm">
-                        <h3 className="font-semibold text-lg text-gray-800 dark:text-white mb-4">Timeline</h3>
-                        <ol className="relative border-l border-gray-200 dark:border-gray-700">                  
-                            <li className="mb-6 ml-4">
-                                <div className="absolute w-3 h-3 bg-gray-200 rounded-full mt-1.5 -left-1.5 border border-white dark:border-gray-800 dark:bg-gray-700"></div>
-                                <time className="mb-1 text-xs font-normal leading-none text-gray-400 dark:text-gray-500">{new Date(invoice.created_at || Date.now()).toLocaleDateString()}</time>
-                                <h3 className="font-semibold text-gray-900 dark:text-white">Invoice created</h3>
-                            </li>
-                             <li className="mb-6 ml-4">
-                                <div className="absolute w-3 h-3 bg-gray-200 rounded-full mt-1.5 -left-1.5 border border-white dark:border-gray-800 dark:bg-gray-700"></div>
-                                <time className="mb-1 text-xs font-normal leading-none text-gray-400 dark:text-gray-500">{new Date(invoice.created_at || Date.now()).toLocaleDateString()}</time>
-                                <h3 className="font-semibold text-gray-900 dark:text-white">Invoice sent</h3>
-                            </li>
-                            {invoice.status === 'Paid' && (
-                                <li className="ml-4">
-                                    <div className="absolute w-3 h-3 bg-green-500 rounded-full mt-1.5 -left-1.5 border border-white dark:border-gray-800"></div>
-                                    <time className="mb-1 text-xs font-normal leading-none text-gray-400 dark:text-gray-500">Some date</time>
-                                    <h3 className="font-semibold text-green-600 dark:text-green-400">Invoice paid</h3>
-                                </li>
-                            )}
-                        </ol>
-                    </div>
                 </aside>
             </div>
         </>
     );
 };
 
+// FIX: Added the missing default export for the InvoiceDetail component.
 export default InvoiceDetail;

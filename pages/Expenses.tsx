@@ -19,7 +19,7 @@ interface ExpenseFormData {
   type: Expense['type'];
   expense_date: string; // "YYYY-MM-DDTHH:mm" for input
   currency: 'KES';
-  total_amount: number;
+  amount: number;
 }
 
 const expenseTypes: Array<Expense['type']> = [
@@ -32,7 +32,7 @@ const emptyExpenseForm: Omit<ExpenseFormData, 'id'> = {
   type: expenseTypes[0],
   expense_date: formatDateTimeForInput(new Date().toISOString()),
   currency: 'KES',
-  total_amount: 0,
+  amount: 0,
 };
 
 const Expenses: React.FC = () => {
@@ -59,19 +59,19 @@ const Expenses: React.FC = () => {
     { header: 'Vehicle', accessor: (exp) => exp.vehicle ? `${exp.vehicle.brand} (${exp.vehicle.registration_number})` : 'N/A' },
     { header: 'Type', accessor: (exp) => exp.type.replace(/_/g, ' ') },
     { header: 'Date', accessor: (exp) => new Date(exp.expense_date).toLocaleString() },
-    { header: 'Amount', accessor: (exp) => `${exp.currency} ${(exp.total_amount || 0).toFixed(2)}` },
-    { header: 'Invoice Item', accessor: (exp) => exp.invoiceItem?.code || 'N/A' },
+    { header: 'Amount', accessor: (exp) => `${exp.currency} ${(exp.amount || 0).toFixed(2)}` },
+    { header: 'Invoice Item', accessor: (exp) => exp.invoice_item?.code || 'N/A' },
   ], []);
 
   const handleEdit = (expense: Expense) => {
     setCurrentItem({
-      id: expense.uuid || expense.id,
-      vehicle_id: expense.vehicle?.uuid || expense.vehicle_id,
-      invoice_item_id: expense.invoiceItem?.uuid || expense.invoice_item_id,
+      id: expense.id,
+      vehicle_id: expense.vehicle?.id as string || expense.vehicle_id,
+      invoice_item_id: expense.invoice_item?.id as string || expense.invoice_item_id,
       type: expense.type,
       expense_date: formatDateTimeForInput(expense.expense_date),
       currency: 'KES',
-      total_amount: expense.total_amount,
+      amount: expense.amount,
     });
     setIsModalOpen(true);
   };
@@ -79,7 +79,7 @@ const Expenses: React.FC = () => {
   const handleAddNew = () => {
     setCurrentItem({
       ...emptyExpenseForm,
-      vehicle_id: vehicles?.[0]?.uuid || '',
+      vehicle_id: (vehicles?.[0]?.id as string) || '',
     });
     setIsModalOpen(true);
   };
@@ -96,6 +96,7 @@ const Expenses: React.FC = () => {
     e.preventDefault();
     const payload = {
       ...currentItem,
+      total_amount: currentItem.amount, // API expects total_amount on save
       expense_date: formatDateForApi(currentItem.expense_date),
       invoice_item_id: currentItem.invoice_item_id || null
     };
@@ -110,7 +111,7 @@ const Expenses: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    const isNumeric = ['total_amount'].includes(name);
+    const isNumeric = ['amount'].includes(name);
     setCurrentItem(prev => ({
       ...prev,
       [name]: isNumeric ? parseFloat(value) || 0 : value,
@@ -151,7 +152,7 @@ const Expenses: React.FC = () => {
         renderActions={(expense) => (
           <>
             <Button variant="icon" onClick={() => handleEdit(expense)}><EditIcon /></Button>
-            <Button variant="icon" onClick={() => handleDelete(expense.uuid || expense.id)}><DeleteIcon /></Button>
+            <Button variant="icon" onClick={() => handleDelete(expense.id)}><DeleteIcon /></Button>
           </>
         )}
       />
@@ -161,21 +162,21 @@ const Expenses: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <Select label="Vehicle" name="vehicle_id" id="vehicle_id" value={currentItem.vehicle_id} onChange={handleChange} required disabled={vehiclesLoading}>
             <option value="">Select a vehicle</option>
-            {vehicles?.map(v => <option key={v.uuid} value={v.uuid!}>{v.brand} {v.model} ({v.registration_number})</option>)}
+            {vehicles?.map(v => <option key={v.id} value={v.id as string}>{v.brand} {v.model} ({v.registration_number})</option>)}
           </Select>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <Select label="Type" name="type" id="type" value={currentItem.type} onChange={handleChange} required>
               {expenseTypes.map(type => <option key={type} value={type}>{type.replace(/_/g, ' ')}</option>)}
             </Select>
-            <Input label="Total Amount (KES)" id="total_amount" name="total_amount" type="number" step="0.01" value={currentItem.total_amount} onChange={handleChange} required />
+            <Input label="Total Amount (KES)" id="amount" name="amount" type="number" step="0.01" value={currentItem.amount} onChange={handleChange} required />
           </div>
 
           <Input label="Expense Date & Time" id="expense_date" name="expense_date" type="datetime-local" value={currentItem.expense_date} onChange={handleChange} required />
 
           <Select label="Related Invoice Item (Optional)" name="invoice_item_id" id="invoice_item_id" value={currentItem.invoice_item_id || ''} onChange={handleChange} disabled={invoiceItemsLoading}>
             <option value="">None</option>
-            {invoiceItems?.map(item => <option key={item.uuid} value={item.uuid!}>Inv: {item.invoice?.code} / Dest: {item.destination}</option>)}
+            {invoiceItems?.map(item => <option key={item.id} value={item.id as string}>Inv: {item.invoice?.code} / Dest: {item.destination}</option>)}
           </Select>
 
           <div className="flex justify-end pt-6 space-x-2 border-t border-gray-200 dark:border-gray-700">

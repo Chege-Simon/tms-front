@@ -2,7 +2,6 @@
 
 export interface BaseEntity {
   id: number | string;
-  uuid?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -139,9 +138,9 @@ export interface Expense extends BaseEntity {
   type: 'DRIVER_WAGE' | 'LOADING_COST' | 'FUEL_COST' | 'MAINTENANCE_COST' | 'VEHICHLE_SERVICE_COST' | 'INSURANCE';
   expense_date: string;
   currency: 'KES';
-  total_amount: number;
+  amount: number;
   vehicle?: Vehicle;
-  invoiceItem?: InvoiceItem;
+  invoice_item?: InvoiceItem;
 }
 
 export interface Payment extends BaseEntity {
@@ -154,10 +153,17 @@ export interface Payment extends BaseEntity {
     customer?: Customer;
 }
 
+export enum JournalTypeEnum {
+    CREDIT = 'CREDIT',
+    DEBIT = 'DEBIT',
+}
+  
 export interface Journal extends BaseEntity {
-    date: string;
-    account: string;
-    debit: number;
-    credit: number;
-    description: string;
+    journal_type: JournalTypeEnum;
+    currency: 'KES';
+    amount: number;
+    customer_id: string;
+    customer?: Customer;
+    journalable_type?: string; // e.g., 'App\\Models\\Payment'
+    journalable_id?: string;
 }

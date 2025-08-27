@@ -1,19 +1,49 @@
+
 import React, { useMemo } from 'react';
 import Header from '../components/Header';
 import DataTable, { type Column } from '../components/DataTable';
-import { useFetch } from '../hooks/useCrud';
+import { useCrud } from '../hooks/useCrud';
 import type { Journal } from '../types';
+import Button from '../components/Button';
 
 const Journals: React.FC = () => {
-  const { data: journals, loading, error } = useFetch<Journal[]>('/journals');
+  const { items: journals, loading, error, pagination, refetch } = useCrud<Journal>('/journals');
 
   const columns: Column<Journal>[] = useMemo(() => [
-    { header: 'Date', accessor: 'date' },
-    { header: 'Account', accessor: 'account' },
-    { header: 'Debit', accessor: (j) => `KES ${j.debit.toFixed(2)}` },
-    { header: 'Credit', accessor: (j) => `KES ${j.credit.toFixed(2)}` },
-    { header: 'Description', accessor: 'description' },
+    { header: 'Date', accessor: (j) => j.created_at ? new Date(j.created_at).toLocaleString() : 'N/A' },
+    { header: 'Customer', accessor: (j) => j.customer?.name || 'N/A' },
+    { 
+      header: 'Description', 
+      accessor: (j) => {
+        const type = j.journalable_type?.split('\\').pop() || 'Entry';
+        return `${type} recorded for ${j.customer?.name || 'customer'}`;
+      }
+    },
+    { 
+      header: 'Debit', 
+      accessor: (j) => j.journal_type === 'DEBIT' ? `${j.currency} ${(j.amount || 0).toFixed(2)}` : '' 
+    },
+    { 
+      header: 'Credit', 
+      accessor: (j) => j.journal_type === 'CREDIT' ? `${j.currency} ${(j.amount || 0).toFixed(2)}` : '' 
+    },
   ], []);
+
+  const PaginationControls = () => (
+    <div className="flex justify-between items-center mt-4 text-sm text-gray-600 dark:text-gray-400">
+      <span>
+        Showing {pagination.meta?.from ?? 0} to {pagination.meta?.to ?? 0} of {pagination.meta?.total ?? 0} results
+      </span>
+      <div className="space-x-2">
+        <Button onClick={() => refetch(pagination.links?.prev)} disabled={!pagination.links?.prev || loading} variant="secondary">
+          Previous
+        </Button>
+        <Button onClick={() => refetch(pagination.links?.next)} disabled={!pagination.links?.next || loading} variant="secondary">
+          Next
+        </Button>
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -27,6 +57,7 @@ const Journals: React.FC = () => {
           <span className="text-xs text-gray-400">No actions</span>
         )}
       />
+      {pagination.meta && pagination.meta.total > 0 && <PaginationControls />}
     </>
   );
 };
