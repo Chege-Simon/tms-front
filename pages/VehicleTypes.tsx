@@ -4,6 +4,7 @@ import Header from '../components/Header';
 import DataTable, { type Column } from '../components/DataTable';
 import Button from '../components/Button';
 import Modal from '../components/Modal';
+import ConfirmationModal from '../components/ConfirmationModal';
 import Input from '../components/Input';
 import Textarea from '../components/Textarea';
 import { useCrud } from '../hooks/useCrud';
@@ -15,6 +16,8 @@ const emptyVehicleType: Omit<VehicleType, 'id' | 'created_at' | 'updated_at' | '
 const VehicleTypes: React.FC = () => {
   const { items: vehicleTypes, addItem, updateItem, deleteItem, loading, error, pagination, refetch } = useCrud<VehicleType>('/vehicle_types');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<VehicleType['id'] | null>(null);
   const [currentItem, setCurrentItem] = useState<VehicleType | Omit<VehicleType, 'id' | 'created_at' | 'updated_at' | 'code'>>(emptyVehicleType);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -49,8 +52,15 @@ const VehicleTypes: React.FC = () => {
   };
   
   const handleDelete = (id: string | number) => {
-    if (window.confirm('Are you sure you want to delete this vehicle type?')) {
-        deleteItem(id);
+    setItemToDelete(id);
+    setIsConfirmModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (itemToDelete) {
+        await deleteItem(itemToDelete);
+        setItemToDelete(null);
+        setIsConfirmModalOpen(false);
     }
   };
 
@@ -115,6 +125,13 @@ const VehicleTypes: React.FC = () => {
         )}
       />
       {pagination.meta && pagination.meta.total > 0 && <PaginationControls />}
+      <ConfirmationModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Confirm Deletion"
+        message="Are you sure you want to delete this vehicle type? This action cannot be undone."
+      />
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={'id' in currentItem ? 'Edit Vehicle Type' : 'Add Vehicle Type'}>
         <form onSubmit={handleSubmit} className="space-y-6">
           <Input label="Name" id="name" name="name" value={currentItem.name} onChange={handleChange} required />

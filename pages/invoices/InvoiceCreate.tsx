@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import type { Invoice, InvoiceItem, Driver, RouteCharge } from '../../types';
@@ -9,6 +8,7 @@ import api from '../../services/api';
 import { useCrud, useFetch } from '../../hooks/useCrud';
 import DataTable, { Column } from '../../components/DataTable';
 import Modal from '../../components/Modal';
+import ConfirmationModal from '../../components/ConfirmationModal';
 import Input from '../../components/Input';
 import Select from '../../components/Select';
 import { notifyError, notifySuccess } from '../../services/notification';
@@ -137,6 +137,8 @@ const InvoiceEdit: React.FC = () => {
 
     const [isItemModalOpen, setIsItemModalOpen] = useState(false);
     const [currentItem, setCurrentItem] = useState<Partial<InvoiceItem> | null>(null);
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState<InvoiceItem['id'] | null>(null);
 
     const handleAddItem = () => {
         setCurrentItem(null);
@@ -148,17 +150,24 @@ const InvoiceEdit: React.FC = () => {
         setIsItemModalOpen(true);
     };
     
-    const handleDeleteItem = async (itemId: string | number) => {
-        if (window.confirm('Are you sure you want to delete this invoice item?')) {
+    const handleDeleteItem = (itemId: string | number) => {
+        setItemToDelete(itemId);
+        setIsConfirmModalOpen(true);
+    };
+
+    const handleConfirmDeleteItem = async () => {
+        if (itemToDelete) {
             try {
-                await api.del(`/invoice_items/${itemId}`);
+                await api.del(`/invoice_items/${itemToDelete}`);
                 notifySuccess('Item deleted successfully.');
-                refetchItems();
-                refetchInvoice();
+                onSaveItem();
             } catch (error) {
                 const message = error instanceof Error ? error.message : 'Failed to delete item.';
                 notifyError(message);
                 console.error("Failed to delete item:", error);
+            } finally {
+                setItemToDelete(null);
+                setIsConfirmModalOpen(false);
             }
         }
     };
@@ -228,6 +237,13 @@ const InvoiceEdit: React.FC = () => {
                 onSave={onSaveItem}
                 invoiceId={id!}
                 currentItem={currentItem}
+            />
+            <ConfirmationModal
+                isOpen={isConfirmModalOpen}
+                onClose={() => setIsConfirmModalOpen(false)}
+                onConfirm={handleConfirmDeleteItem}
+                title="Confirm Deletion"
+                message="Are you sure you want to delete this invoice item? This action cannot be undone."
             />
         </>
     );

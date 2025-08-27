@@ -1,5 +1,4 @@
 
-
 import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
@@ -9,6 +8,7 @@ import { useCrud, useFetch } from '../hooks/useCrud';
 import type { Invoice, Customer, Vehicle } from '../types';
 import { EditIcon, DeleteIcon, PlusIcon, EyeIcon } from '../components/icons';
 import Modal from '../components/Modal';
+import ConfirmationModal from '../components/ConfirmationModal';
 import Select from '../components/Select';
 import Input from '../components/Input';
 import api from '../services/api';
@@ -122,6 +122,8 @@ const InvoiceInitialCreateModal: React.FC<{ isOpen: boolean, onClose: () => void
 const Invoices: React.FC = () => {
   const { items: invoices, deleteItem, loading, error } = useCrud<Invoice>('/invoices');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice['id'] | null>(null);
   const navigate = useNavigate();
 
   const getStatusClass = (status: Invoice['status']) => {
@@ -136,8 +138,15 @@ const Invoices: React.FC = () => {
   };
   
   const handleDelete = (id: string | number) => {
-    if (window.confirm('Are you sure you want to delete this invoice?')) {
-        deleteItem(id);
+    setInvoiceToDelete(id);
+    setIsConfirmModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (invoiceToDelete) {
+        await deleteItem(invoiceToDelete);
+        setInvoiceToDelete(null);
+        setIsConfirmModalOpen(false);
     }
   };
 
@@ -177,6 +186,13 @@ const Invoices: React.FC = () => {
         )}
       />
       <InvoiceInitialCreateModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
+      <ConfirmationModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Confirm Deletion"
+        message="Are you sure you want to delete this invoice? This action cannot be undone."
+      />
     </>
   );
 };

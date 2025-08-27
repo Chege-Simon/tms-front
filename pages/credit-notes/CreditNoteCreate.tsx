@@ -8,6 +8,7 @@ import api from '../../services/api';
 import { useCrud, useFetch } from '../../hooks/useCrud';
 import DataTable, { Column } from '../../components/DataTable';
 import Modal from '../../components/Modal';
+import ConfirmationModal from '../../components/ConfirmationModal';
 import Input from '../../components/Input';
 import Textarea from '../../components/Textarea';
 import { notifyError, notifySuccess } from '../../services/notification';
@@ -81,6 +82,8 @@ const CreditNoteCreate: React.FC = () => {
     const { items: creditNoteItems, loading: itemsLoading, error: itemsError, refetch: refetchItems } = useCrud<CreditNoteItem>(`/credit_note_items?credit_note_id=${id}`);
 
     const [isItemModalOpen, setIsItemModalOpen] = useState(false);
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState<CreditNoteItem['id'] | null>(null);
     const [currentItem, setCurrentItem] = useState<Partial<CreditNoteItem> | null>(null);
 
     const handleAddItem = () => {
@@ -93,15 +96,23 @@ const CreditNoteCreate: React.FC = () => {
         setIsItemModalOpen(true);
     };
     
-    const handleDeleteItem = async (itemId: string | number) => {
-        if (window.confirm('Are you sure you want to delete this item?')) {
+    const handleDeleteItem = (itemId: string | number) => {
+        setItemToDelete(itemId);
+        setIsConfirmModalOpen(true);
+    };
+
+    const handleConfirmDeleteItem = async () => {
+        if (itemToDelete) {
             try {
-                await api.del(`/credit_note_items/${itemId}`);
+                await api.del(`/credit_note_items/${itemToDelete}`);
                 notifySuccess('Item deleted successfully.');
                 onSaveItem();
             } catch (error) {
                 const message = error instanceof Error ? error.message : 'Failed to delete item.';
                 notifyError(message);
+            } finally {
+                setItemToDelete(null);
+                setIsConfirmModalOpen(false);
             }
         }
     };
@@ -164,6 +175,13 @@ const CreditNoteCreate: React.FC = () => {
                 onSave={onSaveItem}
                 creditNoteId={id!}
                 currentItem={currentItem}
+            />
+            <ConfirmationModal
+                isOpen={isConfirmModalOpen}
+                onClose={() => setIsConfirmModalOpen(false)}
+                onConfirm={handleConfirmDeleteItem}
+                title="Confirm Deletion"
+                message="Are you sure you want to delete this item? This action cannot be undone."
             />
         </>
     );

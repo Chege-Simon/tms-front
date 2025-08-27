@@ -5,6 +5,7 @@ import Header from '../components/Header';
 import DataTable, { type Column } from '../components/DataTable';
 import Button from '../components/Button';
 import Modal from '../components/Modal';
+import ConfirmationModal from '../components/ConfirmationModal';
 import Input from '../components/Input';
 import Select from '../components/Select';
 import { useCrud, useFetch } from '../hooks/useCrud';
@@ -83,6 +84,8 @@ const CreditNoteInitialCreateModal: React.FC<{ isOpen: boolean, onClose: () => v
 const CreditNotes: React.FC = () => {
     const { items: creditNotes, deleteItem, loading, error, pagination, refetch } = useCrud<CreditNote>('/credit_notes');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState<CreditNote['id'] | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const navigate = useNavigate();
 
@@ -120,8 +123,15 @@ const CreditNotes: React.FC = () => {
     ], []);
 
     const handleDelete = (id: string | number) => {
-        if (window.confirm('Are you sure you want to delete this credit note?')) {
-            deleteItem(id);
+        setItemToDelete(id);
+        setIsConfirmModalOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (itemToDelete) {
+            await deleteItem(itemToDelete);
+            setItemToDelete(null);
+            setIsConfirmModalOpen(false);
         }
     };
 
@@ -172,6 +182,13 @@ const CreditNotes: React.FC = () => {
             />
             {pagination.meta?.total > 0 && <PaginationControls />}
             <CreditNoteInitialCreateModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
+             <ConfirmationModal
+                isOpen={isConfirmModalOpen}
+                onClose={() => setIsConfirmModalOpen(false)}
+                onConfirm={handleConfirmDelete}
+                title="Confirm Deletion"
+                message="Are you sure you want to delete this credit note? This action cannot be undone."
+            />
         </>
     );
 };

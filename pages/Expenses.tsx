@@ -4,6 +4,7 @@ import Header from '../components/Header';
 import DataTable, { type Column } from '../components/DataTable';
 import Button from '../components/Button';
 import Modal from '../components/Modal';
+import ConfirmationModal from '../components/ConfirmationModal';
 import Input from '../components/Input';
 import Select from '../components/Select';
 import { useCrud, useFetch } from '../hooks/useCrud';
@@ -41,6 +42,8 @@ const Expenses: React.FC = () => {
   const { data: invoiceItems, loading: invoiceItemsLoading } = useFetch<InvoiceItem[]>('/invoice_items');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<Expense['id'] | null>(null);
   const [currentItem, setCurrentItem] = useState<ExpenseFormData>(emptyExpenseForm);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -87,8 +90,15 @@ const Expenses: React.FC = () => {
   const handleCloseModal = () => setIsModalOpen(false);
 
   const handleDelete = (id: string | number) => {
-    if (window.confirm('Are you sure you want to delete this expense?')) {
-      deleteItem(id);
+    setItemToDelete(id);
+    setIsConfirmModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (itemToDelete) {
+        await deleteItem(itemToDelete);
+        setItemToDelete(null);
+        setIsConfirmModalOpen(false);
     }
   };
 
@@ -157,6 +167,14 @@ const Expenses: React.FC = () => {
         )}
       />
       {pagination.meta?.total > 0 && <PaginationControls />}
+
+      <ConfirmationModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Confirm Deletion"
+        message="Are you sure you want to delete this expense? This action cannot be undone."
+      />
 
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={currentItem.id ? 'Edit Expense' : 'Add Expense'}>
         <form onSubmit={handleSubmit} className="space-y-6">

@@ -4,6 +4,7 @@ import Header from '../components/Header';
 import DataTable, { type Column } from '../components/DataTable';
 import Button from '../components/Button';
 import Modal from '../components/Modal';
+import ConfirmationModal from '../components/ConfirmationModal';
 import Input from '../components/Input';
 import Textarea from '../components/Textarea';
 import { useCrud } from '../hooks/useCrud';
@@ -16,6 +17,8 @@ const emptyCustomer: Omit<Customer, 'id' | 'created_at' | 'updated_at'> = { name
 const Customers: React.FC = () => {
   const { items: customers, addItem, updateItem, deleteItem, loading, error, pagination, refetch } = useCrud<Customer>('/customers');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [customerToDelete, setCustomerToDelete] = useState<Customer['id'] | null>(null);
   const [currentItem, setCurrentItem] = useState<Customer | Omit<Customer, 'id' | 'created_at' | 'updated_at'>>(emptyCustomer);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -54,8 +57,15 @@ const Customers: React.FC = () => {
   };
   
   const handleDelete = (id: string | number) => {
-    if (window.confirm('Are you sure you want to delete this customer?')) {
-        deleteItem(id);
+    setCustomerToDelete(id);
+    setIsConfirmModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (customerToDelete) {
+        await deleteItem(customerToDelete);
+        setCustomerToDelete(null);
+        setIsConfirmModalOpen(false);
     }
   };
 
@@ -120,6 +130,13 @@ const Customers: React.FC = () => {
         )}
       />
       {pagination.meta && pagination.meta.total > 0 && <PaginationControls />}
+      <ConfirmationModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Confirm Deletion"
+        message="Are you sure you want to delete this customer? This action cannot be undone."
+      />
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={'id' in currentItem ? 'Edit Customer' : 'Add Customer'}>
         <form onSubmit={handleSubmit} className="space-y-6">
           <Input label="Name" id="name" name="name" value={currentItem.name} onChange={handleChange} required />

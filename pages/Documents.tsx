@@ -1,7 +1,9 @@
-import React, { useMemo } from 'react';
+
+import React, { useMemo, useState } from 'react';
 import Header from '../components/Header';
 import DataTable, { type Column } from '../components/DataTable';
 import Button from '../components/Button';
+import ConfirmationModal from '../components/ConfirmationModal';
 import { useCrud, useFetch } from '../hooks/useCrud';
 import type { Document, Driver, Vehicle } from '../types';
 import { EditIcon, DeleteIcon, PlusIcon } from '../components/icons';
@@ -10,6 +12,8 @@ const Documents: React.FC = () => {
   const { items: documents, deleteItem, loading, error } = useCrud<Document>('/documents');
   const { data: drivers, loading: driversLoading } = useFetch<Driver[]>('/drivers');
   const { data: vehicles, loading: vehiclesLoading } = useFetch<Vehicle[]>('/vehicles');
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<Document['id'] | null>(null);
   
   const ownerMap = useMemo(() => {
     const map: Record<string, string> = {};
@@ -33,8 +37,15 @@ const Documents: React.FC = () => {
   }
   
   const handleDelete = (id: string | number) => {
-    if (window.confirm('Are you sure you want to delete this document?')) {
-        deleteItem(id);
+    setItemToDelete(id);
+    setIsConfirmModalOpen(true);
+  };
+  
+  const handleConfirmDelete = async () => {
+    if (itemToDelete) {
+        await deleteItem(itemToDelete);
+        setItemToDelete(null);
+        setIsConfirmModalOpen(false);
     }
   };
 
@@ -66,6 +77,13 @@ const Documents: React.FC = () => {
             <Button variant="icon" onClick={() => handleDelete(document.id)}><DeleteIcon /></Button>
           </>
         )}
+      />
+      <ConfirmationModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Confirm Deletion"
+        message="Are you sure you want to delete this document? This action cannot be undone."
       />
     </>
   );

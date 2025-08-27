@@ -1,11 +1,10 @@
 
-
-
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Header from '../components/Header';
 import DataTable, { type Column } from '../components/DataTable';
 import Button from '../components/Button';
 import Modal from '../components/Modal';
+import ConfirmationModal from '../components/ConfirmationModal';
 import Input from '../components/Input';
 import Select from '../components/Select';
 import Textarea from '../components/Textarea';
@@ -20,6 +19,8 @@ const Vehicles: React.FC = () => {
   const { data: vehicleTypes, loading: vehicleTypesLoading } = useFetch<VehicleType[]>('/vehicle_types');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [vehicleToDelete, setVehicleToDelete] = useState<Vehicle['id'] | null>(null);
   const [currentItem, setCurrentItem] = useState<Vehicle | Omit<Vehicle, 'id' | 'created_at' | 'updated_at' | 'code' | 'vehicle_type'>>(emptyVehicle);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -57,8 +58,15 @@ const Vehicles: React.FC = () => {
   };
   
   const handleDelete = (id: string | number) => {
-    if (window.confirm('Are you sure you want to delete this vehicle?')) {
-        deleteItem(id);
+    setVehicleToDelete(id);
+    setIsConfirmModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (vehicleToDelete) {
+        await deleteItem(vehicleToDelete);
+        setVehicleToDelete(null);
+        setIsConfirmModalOpen(false);
     }
   };
 
@@ -123,6 +131,13 @@ const Vehicles: React.FC = () => {
         )}
       />
       {pagination.meta && pagination.meta.total > 0 && <PaginationControls />}
+      <ConfirmationModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Confirm Deletion"
+        message="Are you sure you want to delete this vehicle? This action cannot be undone."
+      />
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={'id' in currentItem ? 'Edit Vehicle' : 'Add Vehicle'}>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

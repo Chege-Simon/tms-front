@@ -1,10 +1,10 @@
 
-
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Header from '../components/Header';
 import DataTable, { type Column } from '../components/DataTable';
 import Button from '../components/Button';
 import Modal from '../components/Modal';
+import ConfirmationModal from '../components/ConfirmationModal';
 import Input from '../components/Input';
 import Select from '../components/Select';
 import { useCrud, useFetch } from '../hooks/useCrud';
@@ -27,6 +27,8 @@ const RouteCharges: React.FC = () => {
   const { data: vehicleTypes, loading: vehicleTypesLoading } = useFetch<VehicleType[]>('/vehicle_types');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<RouteCharge['id'] | null>(null);
   const [currentItem, setCurrentItem] = useState<RouteChargeFormData>(emptyRouteChargeForm);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -73,8 +75,15 @@ const RouteCharges: React.FC = () => {
   };
   
   const handleDelete = (id: string | number) => {
-    if (window.confirm('Are you sure you want to delete this route charge?')) {
-        deleteItem(id);
+    setItemToDelete(id);
+    setIsConfirmModalOpen(true);
+  };
+  
+  const handleConfirmDelete = async () => {
+    if (itemToDelete) {
+        await deleteItem(itemToDelete);
+        setItemToDelete(null);
+        setIsConfirmModalOpen(false);
     }
   };
 
@@ -143,6 +152,13 @@ const RouteCharges: React.FC = () => {
         )}
       />
       {pagination.meta && pagination.meta.total > 0 && <PaginationControls />}
+      <ConfirmationModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Confirm Deletion"
+        message="Are you sure you want to delete this route charge? This action cannot be undone."
+      />
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={currentItem.id ? 'Edit Route Charge' : 'Add Route Charge'}>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

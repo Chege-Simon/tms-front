@@ -1,11 +1,10 @@
 
-
-
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Header from '../components/Header';
 import DataTable, { type Column } from '../components/DataTable';
 import Button from '../components/Button';
 import Modal from '../components/Modal';
+import ConfirmationModal from '../components/ConfirmationModal';
 import Input from '../components/Input';
 import Select from '../components/Select';
 import Textarea from '../components/Textarea';
@@ -29,6 +28,8 @@ const Drivers: React.FC = () => {
   const { data: vehicles, loading: vehiclesLoading } = useFetch<Vehicle[]>('/vehicles');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [driverToDelete, setDriverToDelete] = useState<Driver['id'] | null>(null);
   const [currentItem, setCurrentItem] = useState<DriverFormData>(emptyDriverForm);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -73,8 +74,15 @@ const Drivers: React.FC = () => {
   };
   
   const handleDelete = (id: string | number) => {
-    if (window.confirm('Are you sure you want to delete this driver?')) {
-        deleteItem(id);
+    setDriverToDelete(id);
+    setIsConfirmModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (driverToDelete) {
+        await deleteItem(driverToDelete);
+        setDriverToDelete(null);
+        setIsConfirmModalOpen(false);
     }
   };
 
@@ -141,6 +149,13 @@ const Drivers: React.FC = () => {
         )}
       />
       {pagination.meta && pagination.meta.total > 0 && <PaginationControls />}
+      <ConfirmationModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Confirm Deletion"
+        message="Are you sure you want to delete this driver? This action cannot be undone."
+      />
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={currentItem.id ? 'Edit Driver' : 'Add Driver'}>
         <form onSubmit={handleSubmit} className="space-y-6">
           <Input label="Name" id="name" name="name" value={currentItem.name} onChange={handleChange} required />
