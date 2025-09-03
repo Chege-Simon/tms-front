@@ -13,8 +13,6 @@ RUN rm -rf dist/*
 
 # Create the .env file dynamically from the ARGs
 RUN echo "VITE_API_BASE_URL=${VITE_API_BASE_URL}" > .env
-RUN echo "VITE_API_BASE_URL=${VITE_API_BASE_URL}" && cat .env
-
 
 RUN npm install
 
@@ -28,6 +26,7 @@ WORKDIR /app
 
 RUN npm install -g serve
 COPY --from=build /app/dist ./build
+RUN echo "VITE_API_BASE_URL=$VITE_API_BASE_URL" > /tmp/debug.txt
 
 
 EXPOSE 3000
