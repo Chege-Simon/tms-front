@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Declare all expected ARGs
-ARG BASE_URL
+ARG VITE_API_BASE_URL
 
 # Clean up old builds
 RUN rm -rf dist/*
