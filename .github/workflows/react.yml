@@ -26,4 +26,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: dev_kim_tms/react-frontend:latest
+          tags: petekim/tms_and_vms_react_app:latest
