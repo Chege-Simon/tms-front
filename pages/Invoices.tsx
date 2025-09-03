@@ -146,7 +146,7 @@ const Invoices: React.FC = () => {
         const params = new URLSearchParams();
         if (searchTerm) params.append('search', searchTerm);
         Object.entries(filters).forEach(([key, value]) => {
-            if (value) params.append(key, value);
+            if (value) params.append(key, value as string);
         });
         debouncedRefetch(`/invoices?${params.toString()}`);
     }, 300);
