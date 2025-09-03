@@ -7,6 +7,7 @@ COPY package*.json ./
 
 # Declare all expected ARGs
 ARG VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL 
 
 # Clean up old builds
 RUN rm -rf dist/*
