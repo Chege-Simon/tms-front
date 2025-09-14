@@ -207,7 +207,7 @@ const InvoiceEdit: React.FC = () => {
                     <div><strong className="block text-gray-500">Issue Date:</strong> {new Date(invoice.issue_date).toLocaleDateString()}</div>
                     <div><strong className="block text-gray-500">Due Date:</strong> {new Date(invoice.due_date).toLocaleDateString()}</div>
                     <div><strong className="block text-gray-500">Status:</strong> {invoice.status}</div>
-                    <div><strong className="block text-gray-500">Total Amount:</strong> <span className="font-bold text-base">{invoice.currency} {(invoice.total_amount || 0).toFixed(2)}</span></div>
+                    <div><strong className="block text-gray-500">Total Amount:</strong> <span className="font-bold text-base">{invoice.currency} {(Number(invoice.total_amount) || 0).toFixed(2)}</span></div>
                 </div>
             </div>
 
