@@ -63,11 +63,11 @@ const Journals: React.FC = () => {
     },
     { 
       header: 'Debit', 
-      accessor: (j) => j.journal_type === JournalTypeEnum.DEBIT ? `${j.currency} ${(j.amount || 0).toFixed(2)}` : '' 
+      accessor: (j) => j.journal_type === JournalTypeEnum.DEBIT ? `${j.currency} ${(Number(j.amount) || 0).toFixed(2)}` : '' 
     },
     { 
       header: 'Credit', 
-      accessor: (j) => j.journal_type === JournalTypeEnum.CREDIT ? `${j.currency} ${(j.amount || 0).toFixed(2)}` : '' 
+      accessor: (j) => j.journal_type === JournalTypeEnum.CREDIT ? `${j.currency} ${(Number(j.amount) || 0).toFixed(2)}` : '' 
     },
   ], []);
 

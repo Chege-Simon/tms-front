@@ -27,7 +27,7 @@ const Dashboard: React.FC = () => {
   const { data: drivers, loading: driversLoading } = useFetch<Driver[]>('/drivers');
   const { data: expenses, loading: expensesLoading } = useFetch<Expense[]>('/expenses');
 
-  const totalExpenses = expenses?.reduce((acc, expense) => acc + expense.amount, 0) || 0;
+  const totalExpenses = expenses?.reduce((acc, expense) => acc + Number(expense.amount), 0) || 0;
 
   return (
     <>

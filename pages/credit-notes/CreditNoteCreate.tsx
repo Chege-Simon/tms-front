@@ -124,7 +124,7 @@ const CreditNoteCreate: React.FC = () => {
 
     const columns = useMemo((): Column<CreditNoteItem>[] => [
         { header: 'Description', accessor: 'description' },
-        { header: 'Amount', accessor: (item) => `${creditNote?.currency || 'KES'} ${(item.credit_note_amount || 0).toFixed(2)}` },
+        { header: 'Amount', accessor: (item) => `${creditNote?.currency || 'KES'} ${(Number(item.credit_note_amount) || 0).toFixed(2)}` },
     ], [creditNote?.currency]);
 
     if (cnLoading) return <div>Loading Credit Note...</div>;
@@ -146,7 +146,7 @@ const CreditNoteCreate: React.FC = () => {
                     <div><strong className="block text-gray-500">Customer:</strong> {creditNote.customer?.name}</div>
                     <div><strong className="block text-gray-500">Issue Date:</strong> {new Date(creditNote.issue_date).toLocaleDateString()}</div>
                     <div><strong className="block text-gray-500">Status:</strong> {creditNote.status}</div>
-                    <div><strong className="block text-gray-500">Total Amount:</strong> <span className="font-bold text-base">{creditNote.currency} {(creditNote.total_amount || 0).toFixed(2)}</span></div>
+                    <div><strong className="block text-gray-500">Total Amount:</strong> <span className="font-bold text-base">{creditNote.currency} {(Number(creditNote.total_amount) || 0).toFixed(2)}</span></div>
                 </div>
             </div>
 

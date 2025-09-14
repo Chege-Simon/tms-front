@@ -137,7 +137,7 @@ const InvoiceDetail: React.FC = () => {
                                                 {item.route_charge && <p className="text-xs text-gray-500 dark:text-gray-400">{item.route_charge.route}</p>}
                                             </td>
                                             <td className="p-3">{item.driver?.name}</td>
-                                            <td className="p-3 text-right font-medium">{invoice.currency} {(item.actual_trip_charge || 0).toFixed(2)}</td>
+                                            <td className="p-3 text-right font-medium">{invoice.currency} {(Number(item.actual_trip_charge) || 0).toFixed(2)}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -148,7 +148,7 @@ const InvoiceDetail: React.FC = () => {
                         <div className="w-full max-w-xs space-y-2 text-sm">
                             <div className="flex justify-between font-bold text-lg text-gray-800 dark:text-white border-t pt-2 mt-2 dark:border-gray-600">
                                 <span>Order total</span>
-                                <span>{invoice.currency} {(invoice.total_amount || 0).toFixed(2)}</span>
+                                <span>{invoice.currency} {(Number(invoice.total_amount) || 0).toFixed(2)}</span>
                             </div>
                         </div>
                     </section>
@@ -177,7 +177,7 @@ const InvoiceDetail: React.FC = () => {
                             <p className="text-sm text-gray-500 dark:text-gray-400">Invoice to:</p>
                             <p className="font-semibold text-gray-800 dark:text-white">{invoice.customer?.name}</p>
                         </div>
-                        <p className="text-4xl font-bold text-gray-800 dark:text-white">{invoice.currency} {(invoice.total_amount || 0).toFixed(2)}</p>
+                        <p className="text-4xl font-bold text-gray-800 dark:text-white">{invoice.currency} {(Number(invoice.total_amount) || 0).toFixed(2)}</p>
                     </div>
                      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg space-y-3 text-sm">
                         <h3 className="font-semibold text-lg text-gray-800 dark:text-white">Details</h3>
