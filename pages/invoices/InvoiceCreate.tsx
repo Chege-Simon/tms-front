@@ -182,7 +182,7 @@ const InvoiceEdit: React.FC = () => {
         { header: 'Destination', accessor: 'destination'},
         { header: 'Driver', accessor: (item) => item.driver?.name || 'N/A' },
         { header: 'Route', accessor: (item) => item.route_charge?.route || 'N/A' },
-        { header: 'Trip Charge', accessor: (item) => `${invoice?.currency || 'KES'} ${(item.actual_trip_charge || 0).toFixed(2)}` },
+        { header: 'Trip Charge', accessor: (item) => `${invoice?.currency || 'KES'} ${(Number(item.actual_trip_charge) || 0).toFixed(2)}` },
     ], [invoice?.currency]);
 
     if (invoiceLoading) return <div>Loading Invoice...</div>;
