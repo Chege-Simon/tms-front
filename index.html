@@ -44,8 +44,8 @@
       @media print {
         body {
           background-color: #fff !important;
-          margin: 0 !important;
-          padding: 0 !important;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
         }
         .no-print {
           display: none !important;
@@ -59,8 +59,15 @@
             display: none !important;
         }
 
+        /* CRITICAL FIX: Override screen layout constraints */
+        html, body, #root, #root > div, #root > div > div {
+          height: auto !important;
+          overflow: visible !important;
+        }
+
         main {
             padding: 0 !important;
+            overflow: visible !important; /* Allow content to break across pages */
         }
         
         .printable-area {
@@ -69,6 +76,13 @@
             padding: 0 !important;
             margin: 0 !important;
             width: 100% !important;
+            color: #000 !important; /* Ensure text is black for printing */
+        }
+
+        .dark .printable-area, .dark .printable-area * {
+            background-color: #fff !important;
+            color: #000 !important;
+            border-color: #ccc !important;
         }
         
         .printable-area table {
