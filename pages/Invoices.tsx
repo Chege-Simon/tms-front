@@ -146,7 +146,7 @@ const Invoices: React.FC = () => {
         const params = new URLSearchParams();
         if (searchTerm) params.append('search', searchTerm);
         Object.entries(filters).forEach(([key, value]) => {
-            if (value) params.append(key, value as string);
+            if (value) params.append(key, value);
         });
         debouncedRefetch(`/invoices?${params.toString()}`);
     }, 300);
@@ -193,7 +193,7 @@ const Invoices: React.FC = () => {
     { header: 'Vehicle', accessor: (inv) => inv.vehicle ? `${inv.vehicle.brand} (${inv.vehicle.registration_number})` : 'N/A'},
     { header: 'Issue Date', accessor: (inv) => new Date(inv.issue_date).toLocaleDateString() },
     { header: 'Due Date', accessor: (inv) => new Date(inv.due_date).toLocaleDateString() },
-    { header: 'Total', accessor: (inv) => `${inv.currency} ${(Number(inv.total_amount) || 0).toFixed(2)}` },
+    { header: 'Total', accessor: (inv) => `${inv.currency} ${(inv.total_amount || 0).toFixed(2)}` },
     { header: 'Status', accessor: (inv) => (
         <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusClass(inv.status)}`}>
             {inv.status}

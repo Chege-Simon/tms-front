@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = 'https://52b58685b304.ngrok-free.app/api';
 
 const getAuthToken = () => localStorage.getItem('authToken');
 

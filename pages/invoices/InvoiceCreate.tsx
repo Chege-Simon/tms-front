@@ -182,7 +182,7 @@ const InvoiceEdit: React.FC = () => {
         { header: 'Destination', accessor: 'destination'},
         { header: 'Driver', accessor: (item) => item.driver?.name || 'N/A' },
         { header: 'Route', accessor: (item) => item.route_charge?.route || 'N/A' },
-        { header: 'Trip Charge', accessor: (item) => `${invoice?.currency || 'KES'} ${(Number(item.actual_trip_charge) || 0).toFixed(2)}` },
+        { header: 'Trip Charge', accessor: (item) => `${invoice?.currency || 'KES'} ${(item.actual_trip_charge || 0).toFixed(2)}` },
     ], [invoice?.currency]);
 
     if (invoiceLoading) return <div>Loading Invoice...</div>;
@@ -207,7 +207,7 @@ const InvoiceEdit: React.FC = () => {
                     <div><strong className="block text-gray-500">Issue Date:</strong> {new Date(invoice.issue_date).toLocaleDateString()}</div>
                     <div><strong className="block text-gray-500">Due Date:</strong> {new Date(invoice.due_date).toLocaleDateString()}</div>
                     <div><strong className="block text-gray-500">Status:</strong> {invoice.status}</div>
-                    <div><strong className="block text-gray-500">Total Amount:</strong> <span className="font-bold text-base">{invoice.currency} {(Number(invoice.total_amount) || 0).toFixed(2)}</span></div>
+                    <div><strong className="block text-gray-500">Total Amount:</strong> <span className="font-bold text-base">{invoice.currency} {(invoice.total_amount || 0).toFixed(2)}</span></div>
                 </div>
             </div>
 

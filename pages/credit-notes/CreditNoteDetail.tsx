@@ -1,59 +1,90 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCrud, useFetch } from '../../hooks/useCrud';
 import type { CreditNote, CreditNoteItem } from '../../types';
 import Button from '../../components/Button';
 import { DownloadIcon, PrintIcon, EditIcon } from '../../components/icons';
-import { notifyWarning, notifySuccess, notifyError } from '../../services/notification';
-import api from '../../services/api';
-import { formatDateForApi } from '../../services/datetime';
+import { notifyWarning } from '../../services/notification';
+
+const DocumentHeader = ({ creditNote }: { creditNote: CreditNote }) => (
+    <>
+        <header className="flex justify-between items-start pb-4 border-b dark:border-gray-700">
+            <div>
+                <h2 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">JOFRA LTD</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Credit Note #{creditNote.code}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Status: {creditNote.status}</p>
+            </div>
+            <div className="text-right">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Date: {new Date(creditNote.issue_date).toLocaleDateString()}</p>
+            </div>
+        </header>
+        <section className="grid grid-cols-2 gap-8 my-4">
+            <div>
+                <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Pay to:</h3>
+                <address className="text-sm text-gray-600 dark:text-gray-400 not-italic">
+                    JOFRA LTD<br/>
+                    1462-0232, Ruiru<br/>
+                    Kenya<br/>
+                    VAT Code: AA-1234567890<br/>
+                    KRA PIN: P1234567890D
+                </address>
+            </div>
+            <div className="text-right">
+                <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Credited to:</h3>
+                <address className="text-sm text-gray-600 dark:text-gray-400 not-italic">
+                    {creditNote.customer?.name}<br/>
+                    {creditNote.customer?.address}<br/>
+                    {creditNote.customer?.location}, {creditNote.customer?.country}
+                </address>
+            </div>
+        </section>
+    </>
+);
+
+const ItemsTable = ({ items, currency }: { items: CreditNoteItem[], currency: string }) => (
+    <div className="overflow-x-auto">
+        <table className="min-w-full text-sm">
+            <thead className="bg-gray-50 dark:bg-gray-700">
+                <tr>
+                    <th className="p-2 text-left font-semibold text-gray-700 dark:text-gray-200">Description</th>
+                    <th className="p-2 text-right font-semibold text-gray-700 dark:text-gray-200">Amount</th>
+                </tr>
+            </thead>
+            <tbody className="divide-y dark:divide-gray-600">
+                {items.map(item => (
+                    <tr key={item.id}>
+                        <td className="p-2 w-4/5">{item.description}</td>
+                        <td className="p-2 text-right font-medium">{currency} {(item.credit_note_amount || 0).toFixed(2)}</td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    </div>
+);
 
 const CreditNoteDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     
-    const { data: creditNote, loading: cnLoading, error: cnError, refetch: refetchCreditNote } = useFetch<CreditNote>(`/credit_notes/${id}`);
+    const { data: creditNote, loading: cnLoading, error: cnError } = useFetch<CreditNote>(`/credit_notes/${id}`);
     const { items: creditNoteItems, loading: itemsLoading, error: itemsError } = useCrud<CreditNoteItem>(`/credit_note_items?credit_note_id=${id}`);
-    
-    const [currentStatus, setCurrentStatus] = useState<CreditNote['status']>('Draft');
-    const [isUpdating, setIsUpdating] = useState(false);
 
-    useEffect(() => {
-        if (creditNote) {
-            setCurrentStatus(creditNote.status);
+    // A conservative estimate of items per page to prevent overflow on a fixed-height page.
+    const ITEMS_PER_PAGE = 12;
+
+    const pages = useMemo(() => {
+        if (!creditNoteItems || creditNoteItems.length === 0) {
+            return [[]];
         }
-    }, [creditNote]);
+        const result: CreditNoteItem[][] = [];
+        for (let i = 0; i < creditNoteItems.length; i += ITEMS_PER_PAGE) {
+            result.push(creditNoteItems.slice(i, i + ITEMS_PER_PAGE));
+        }
+        return result;
+    }, [creditNoteItems]);
 
     const handlePrint = () => window.print();
-
-    const handleStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-        if (!creditNote) return;
-        
-        const newStatus = e.target.value as CreditNote['status'];
-        setCurrentStatus(newStatus);
-        setIsUpdating(true);
-        
-        const payload = {
-            issue_date: formatDateForApi(creditNote.issue_date),
-            customer_id: creditNote.customer?.id || creditNote.customer_id,
-            currency: creditNote.currency,
-            total_amount: creditNote.total_amount || 0,
-            status: newStatus,
-        };
-        
-        try {
-            await api.put(`/credit_notes/${id}`, payload);
-            notifySuccess('Status updated successfully.');
-            refetchCreditNote();
-        } catch (err) {
-            const message = err instanceof Error ? err.message : 'Failed to update status.';
-            notifyError(message);
-            if (creditNote) setCurrentStatus(creditNote.status);
-        } finally {
-            setIsUpdating(false);
-        }
-    };
 
     if (cnLoading || itemsLoading) return <div className="text-center p-8">Loading...</div>;
     const combinedError = cnError || itemsError;
@@ -74,78 +105,34 @@ const CreditNoteDetail: React.FC = () => {
                 </div>
             </header>
             
-            <div className="flex flex-col lg:flex-row gap-8">
-                <div className="print-area lg:flex-1 bg-white dark:bg-gray-800 p-8 lg:p-12 shadow-lg rounded-lg">
-                   <header className="flex justify-between items-start pb-8 border-b dark:border-gray-700">
-                        <div>
-                            <h2 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">FleetFlow</h2>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Credit Note #{creditNote.code}</p>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Date: {new Date(creditNote.issue_date).toLocaleDateString()}</p>
-                        </div>
-                    </header>
-                    <section className="my-8">
-                         <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Credited to:</h3>
-                        <address className="text-sm text-gray-600 dark:text-gray-400 not-italic">
-                            {creditNote.customer?.name}<br/>
-                            {creditNote.customer?.address}<br/>
-                            {creditNote.customer?.location}, {creditNote.customer?.country}
-                        </address>
-                    </section>
-                    <section>
-                         <div className="overflow-x-auto border rounded-lg dark:border-gray-700">
-                            <table className="min-w-full text-sm">
-                                <thead className="bg-gray-50 dark:bg-gray-700">
-                                    <tr>
-                                        <th className="p-3 text-left font-semibold text-gray-700 dark:text-gray-200">Description</th>
-                                        <th className="p-3 text-right font-semibold text-gray-700 dark:text-gray-200">Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y dark:divide-gray-600">
-                                    {creditNoteItems?.map(item => (
-                                        <tr key={item.id}>
-                                            <td className="p-3">{item.description}</td>
-                                            <td className="p-3 text-right font-medium">{creditNote.currency} {(item.credit_note_amount || 0).toFixed(2)}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                         </div>
-                    </section>
-                    <section className="flex justify-end mt-8">
-                        <div className="w-full max-w-xs space-y-2 text-sm">
-                            <div className="flex justify-between font-bold text-lg text-gray-800 dark:text-white border-t pt-2 mt-2 dark:border-gray-600">
-                                <span>Total Credit</span>
-                                <span>{creditNote.currency} {(creditNote.total_amount || 0).toFixed(2)}</span>
+            <div className="page-view-container">
+                {pages.map((pageItems, pageIndex) => {
+                    const totalPages = pages.length;
+                    const isLastPage = pageIndex === totalPages - 1;
+
+                    return (
+                        <div key={pageIndex} className="page-view">
+                            <div className="page-content">
+                                <DocumentHeader creditNote={creditNote} />
+                                <ItemsTable items={pageItems} currency={creditNote.currency} />
+
+                                {isLastPage && (
+                                    <section className="flex justify-end mt-auto pt-4">
+                                        <div className="w-full max-w-xs space-y-2 text-sm">
+                                            <div className="flex justify-between font-bold text-lg text-gray-800 dark:text-white border-t pt-2 mt-2 dark:border-gray-600">
+                                                <span>Total Credit</span>
+                                                <span>{creditNote.currency} {(creditNote.total_amount || 0).toFixed(2)}</span>
+                                            </div>
+                                        </div>
+                                    </section>
+                                )}
+                            </div>
+                            <div className="page-view-footer">
+                                Page {pageIndex + 1} of {totalPages}
                             </div>
                         </div>
-                    </section>
-                </div>
-
-                <aside className="no-print lg:w-80 flex-shrink-0 space-y-6">
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-                        <div className="flex items-center gap-2 mb-4">
-                            <label htmlFor="status" className="text-sm font-medium text-gray-500 dark:text-gray-400 flex-shrink-0">Status:</label>
-                            <select
-                                id="status"
-                                value={currentStatus}
-                                onChange={handleStatusChange}
-                                disabled={isUpdating}
-                                className="block w-full p-2 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
-                            >
-                                <option value="Draft">Draft</option>
-                                <option value="Issued">Issued</option>
-                                <option value="Applied">Applied</option>
-                            </select>
-                        </div>
-                        <div className="my-4">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Customer:</p>
-                            <p className="font-semibold text-gray-800 dark:text-white">{creditNote.customer?.name}</p>
-                        </div>
-                        <p className="text-4xl font-bold text-gray-800 dark:text-white">{creditNote.currency} {(creditNote.total_amount || 0).toFixed(2)}</p>
-                    </div>
-                </aside>
+                    );
+                })}
             </div>
         </>
     );
