@@ -68,7 +68,7 @@ const Payments: React.FC = () => {
     { header: 'Code', accessor: 'code' },
     { header: 'Customer', accessor: (p) => p.customer?.name || 'N/A' },
     { header: 'Payment Date', accessor: (p) => new Date(p.payment_date).toLocaleString() },
-    { header: 'Amount', accessor: (p) => `${p.currency} ${(p.total_amount || 0).toFixed(2)}` },
+    { header: 'Amount', accessor: (p) => `${p.currency} ${parseFloat(p.total_amount || 0).toFixed(2)}` },
     { header: 'Notes', accessor: 'notes' },
   ], []);
 

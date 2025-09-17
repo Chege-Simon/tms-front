@@ -63,7 +63,7 @@ const ItemsTable = ({ items, currency }: { items: InvoiceItem[], currency: strin
                             {item.route_charge && <p className="text-xs text-gray-500 dark:text-gray-400">{item.route_charge.route}</p>}
                         </td>
                         <td className="p-2">{item.driver?.name}</td>
-                        <td className="p-2 text-right font-medium">{currency} {(item.actual_trip_charge || 0).toFixed(2)}</td>
+                        <td className="p-2 text-right font-medium">{currency} {Number(item.actual_trip_charge || 0).toFixed(2)}</td>
                     </tr>
                 ))}
             </tbody>
@@ -133,7 +133,7 @@ const InvoiceDetail: React.FC = () => {
                                         <div className="w-full max-w-xs space-y-2 text-sm">
                                             <div className="flex justify-between font-bold text-lg text-gray-800 dark:text-white border-t pt-2 mt-2 dark:border-gray-600">
                                                 <span>Order total</span>
-                                                <span>{invoice.currency} {(invoice.total_amount || 0).toFixed(2)}</span>
+                                                <span>{invoice.currency} {parseFloat(invoice.total_amount || 0).toFixed(2)}</span>
                                             </div>
                                         </div>
                                     </section>

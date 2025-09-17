@@ -127,7 +127,7 @@ const CreditNotes: React.FC = () => {
         { header: 'Number', accessor: 'code' },
         { header: 'Customer', accessor: (cn) => cn.customer?.name || 'N/A' },
         { header: 'Issue Date', accessor: (cn) => new Date(cn.issue_date).toLocaleDateString() },
-        { header: 'Amount', accessor: (cn) => `${cn.currency} ${(cn.total_amount || 0).toFixed(2)}` },
+        { header: 'Amount', accessor: (cn) => `${cn.currency} ${parseFloat(cn.total_amount || 0).toFixed(2)}` },
         {
             header: 'Status', accessor: (cn) => (
                 <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusClass(cn.status)}`}>

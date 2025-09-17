@@ -55,7 +55,7 @@ const ItemsTable = ({ items, currency }: { items: CreditNoteItem[], currency: st
                 {items.map(item => (
                     <tr key={item.id}>
                         <td className="p-2 w-4/5">{item.description}</td>
-                        <td className="p-2 text-right font-medium">{currency} {(item.credit_note_amount || 0).toFixed(2)}</td>
+                        <td className="p-2 text-right font-medium">{currency} {Number(item.credit_note_amount || 0).toFixed(2)}</td>
                     </tr>
                 ))}
             </tbody>
@@ -121,7 +121,7 @@ const CreditNoteDetail: React.FC = () => {
                                         <div className="w-full max-w-xs space-y-2 text-sm">
                                             <div className="flex justify-between font-bold text-lg text-gray-800 dark:text-white border-t pt-2 mt-2 dark:border-gray-600">
                                                 <span>Total Credit</span>
-                                                <span>{creditNote.currency} {(creditNote.total_amount || 0).toFixed(2)}</span>
+                                                <span>{creditNote.currency} {parseFloat(creditNote.total_amount || 0).toFixed(2)}</span>
                                             </div>
                                         </div>
                                     </section>
