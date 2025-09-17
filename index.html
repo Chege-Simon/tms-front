@@ -29,44 +29,16 @@
       }
     </script>
     <style>
-      /* Styles for the on-screen paged document view */
-      .page-view-container {
-        background-color: #e5e7eb; /* bg-gray-200 */
-        padding: 2rem;
-        margin: -2rem; /* counteract parent padding */
-      }
-      .dark .page-view-container {
-        background-color: rgba(17, 24, 39, 0.5); /* dark:bg-gray-900/50 */
-      }
+      /* Styles for browser-native printing */
+      @page {
+        size: A4;
+        margin: 1.5cm; /* Standard page margins */
 
-      .page-view {
-          background-color: white;
-          width: 210mm;
-          height: 297mm; /* Use fixed height to enforce page boundaries on screen */
-          margin: 2rem auto;
-          padding: 1.5cm 1.5cm 2.5cm 1.5cm; /* Increased bottom padding */
-          box-shadow: 0 0 10px rgba(0,0,0,0.15);
-          position: relative; 
-          display: flex;
-          flex-direction: column;
-      }
-      .page-content {
-        flex-grow: 1;
-        display: flex;
-        flex-direction: column;
-      }
-      .page-view-footer {
-        position: absolute;
-        bottom: 1cm;
-        right: 1.5cm;
-        font-size: 10pt;
-        color: #666;
-      }
-      .dark .page-view {
-        background-color: #1f2937; /* dark:bg-gray-800 */
-      }
-      .dark .page-view-footer {
-        color: #9ca3af; /* dark:text-gray-400 */
+        @bottom-right {
+          content: "Page " counter(page);
+          font-size: 10pt;
+          color: #666;
+        }
       }
       
       @media print {
@@ -80,33 +52,43 @@
         }
         
         /* Hide app chrome when printing */
-        #root > div > aside, #root > div > div > header, #root > div > div > main > nav {
-            display: none;
+        #root > div > aside, 
+        #root > div > div > header, 
+        #root > div > div > main > nav,
+        .print-controls {
+            display: none !important;
         }
 
-        .page-view-container {
-          background-color: #fff !important;
-          margin: 0 !important;
-          padding: 0 !important;
-        }
-
-        .page-view {
-          margin: 0 !important;
-          padding: 0 !important;
-          box-shadow: none !important;
-          border: none !important;
-          width: 100% !important;
-          min-height: initial; /* Let the printer handle page flow */
-          height: auto; /* Let the printer handle page flow */
-          page-break-after: always;
-        }
-        
-        .page-view:last-of-type {
-          page-break-after: auto;
-        }
-        
         main {
             padding: 0 !important;
+        }
+        
+        .printable-area {
+            box-shadow: none !important;
+            border: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+        }
+        
+        .printable-area table {
+            width: 100%;
+            border-collapse: collapse; /* Ensure borders are clean */
+        }
+
+        /* This is the magic for repeating headers */
+        .printable-area thead {
+          display: table-header-group;
+        }
+        
+        /* This is the magic for the footer on the last page */
+        .printable-area tfoot {
+          display: table-footer-group;
+        }
+        
+        /* Prevent rows from splitting across pages */
+        .printable-area tbody tr {
+          page-break-inside: avoid;
         }
       }
     </style>
