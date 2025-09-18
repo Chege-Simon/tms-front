@@ -74,7 +74,7 @@ const InvoiceDetail: React.FC = () => {
     
     if (!invoice) return <div className="text-center p-8">Invoice not found.</div>;
 
-    const itemChunks = chunkArray(invoiceItems || [], 10);
+    const itemChunks = chunkArray(invoiceItems || [], 15);
     const totalPages = itemChunks.length || 1;
 
     return (

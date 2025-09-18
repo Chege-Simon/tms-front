@@ -70,7 +70,7 @@ const CreditNoteDetail: React.FC = () => {
     if (combinedError) return <div className="text-center p-8 text-red-500">Error: {combinedError.message}</div>;
     if (!creditNote) return <div className="text-center p-8">Credit Note not found.</div>;
 
-    const itemChunks = chunkArray(creditNoteItems || [], 10);
+    const itemChunks = chunkArray(creditNoteItems || [], 15);
     const totalPages = itemChunks.length || 1;
 
     return (
