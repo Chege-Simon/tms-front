@@ -14,7 +14,7 @@ const Breadcrumbs: React.FC = () => {
   const isId = (s: string) => /^[a-f0-9-]{10,}$/i.test(s) || /^\d{5,}$/.test(s);
 
   return (
-    <nav aria-label="breadcrumb" className="mb-6">
+    <nav aria-label="breadcrumb" className="mb-6 no-print">
       <ol className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
         <li>
           <Link to="/" className="hover:text-indigo-600 dark:hover:text-indigo-400">
