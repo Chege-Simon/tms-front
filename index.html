@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -30,59 +29,80 @@
       }
     </script>
     <style>
+      /* Styles for browser-native printing */
+      @page {
+        size: A4;
+        margin: 1.5cm; /* Standard page margins */
+
+        @bottom-right {
+          content: "Page " counter(page);
+          font-size: 10pt;
+          color: #666;
+        }
+      }
+      
       @media print {
         body {
           background-color: #fff !important;
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
         }
-
-        .print-header {
-          position: running(printHeader);
-        }
-
-        @page {
-          @top-center {
-            content: element(printHeader);
-          }
-
-          margin-top: 2in; /* Adjust to avoid overlap with content */
-        }
-
-        /* Optional: prevent page break inside table rows */
-        table, tr, td, th {
-          page-break-inside: avoid;
-        }
-
-        /* Optional: ensure table headers repeat */
-        thead {
-          display: table-header-group;
-        }
         .no-print {
           display: none !important;
         }
-        .print-area {
-          display: block !important;
-          visibility: visible !important;
-          position: absolute;
-          left: 0;
-          top: 0;
-          width: 100%;
-          margin: 0;
-          padding: 1rem;
-          background-color: white;
-          box-shadow: none !important;
+        
+        /* Hide app chrome when printing */
+        #root > div > aside, 
+        #root > div > div > header, 
+        #root > div > div > main > nav,
+        .print-controls {
+            display: none !important;
         }
-        .print-area * {
-          visibility: visible !important;
-          color: #000 !important;
-          background-color: transparent !important;
+
+        /* CRITICAL FIX: Override screen layout constraints */
+        html, body, #root, #root > div, #root > div > div {
+          height: auto !important;
+          overflow: visible !important;
         }
-        body > #root > div {
-          visibility: hidden;
+
+        main {
+            padding: 0 !important;
+            overflow: visible !important; /* Allow content to break across pages */
         }
-        body > #root > div > .print-area {
-            visibility: visible;
+        
+        .printable-area {
+            box-shadow: none !important;
+            border: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            color: #000 !important; /* Ensure text is black for printing */
+        }
+
+        .dark .printable-area, .dark .printable-area * {
+            background-color: #fff !important;
+            color: #000 !important;
+            border-color: #ccc !important;
+        }
+        
+        .printable-area table {
+            width: 100%;
+            border-collapse: collapse; /* Ensure borders are clean */
+        }
+
+        /* This is the magic for repeating headers */
+        .printable-area thead {
+          display: table-header-group;
+        }
+        
+        /* This is the magic for the footer on the last page */
+        .printable-area tfoot {
+          display: table-footer-group;
+        }
+        
+        /* Prevent rows from splitting across pages */
+        .printable-area tbody tr {
+          page-break-inside: avoid;
         }
       }
     </style>
@@ -100,6 +120,7 @@
 </head>
   <body class="bg-gray-100 dark:bg-gray-900 font-sans">
     <div id="root"></div>
+    <script src="https://printjs-4de6.kxcdn.com/print.min.js"></script>
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>
