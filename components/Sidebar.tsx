@@ -24,10 +24,10 @@ const Sidebar: React.FC = () => {
   const activeLinkClasses = "bg-gray-700 text-white";
 
   return (
-    <aside className="w-64 flex-shrink-0 bg-gray-800 dark:bg-gray-900/50 p-4 flex flex-col">
+    <aside className="no-print w-64 flex-shrink-0 bg-gray-800 dark:bg-gray-900/50 p-4 flex flex-col">
       <div className="flex items-center mb-8 px-4">
         <AppIcon />
-        <h1 className="text-xl font-bold text-white ml-3">FleetFlow</h1>
+        <h1 className="text-xl font-bold text-white ml-3">JOFRA LTD</h1>
       </div>
       <nav className="flex-1 space-y-2 overflow-y-auto">
         {navLinks.map((link) => (
@@ -42,7 +42,7 @@ const Sidebar: React.FC = () => {
         ))}
       </nav>
       <div className="mt-auto pt-4 border-t border-gray-700">
-          <div className="text-center mt-4 text-xs text-gray-500">© 2024 FleetFlow Inc.</div>
+          <div className="text-center mt-4 text-xs text-gray-500">© 2024 JOFRA LTD Inc.</div>
       </div>
     </aside>
   );

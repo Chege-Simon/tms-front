@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { SunIcon, MoonIcon } from './icons';
 import UserProfileDropdown from './UserProfileDropdown';
@@ -28,7 +29,7 @@ const TopBar: React.FC = () => {
   };
 
   return (
-    <header className="flex-shrink-0 bg-white dark:bg-gray-800/50 backdrop-blur-sm shadow-sm z-10">
+    <header className="no-print flex-shrink-0 bg-white dark:bg-gray-800/50 backdrop-blur-sm shadow-sm z-10">
       <div className="flex items-center justify-end p-4">
         <div className="flex items-center space-x-4">
           <button

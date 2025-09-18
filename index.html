@@ -78,26 +78,36 @@
       }
       
       @media print {
-        /* FIX: Override main layout constraints to allow content to flow across pages */
-        body, #root, #root > div, .print-wrapper {
-          height: auto !important;
-          overflow: visible !important;
-        }
-        main {
-            padding: 0 !important;
-            overflow: visible !important;
-        }
-        /* END FIX */
-
         body {
           background-color: #fff !important;
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
         }
+
         .no-print {
           display: none !important;
         }
-        
+
+        /* 
+          KEY FIX:
+          This block dismantles the app's flexbox layout for printing.
+          On-screen, the layout uses flex and overflow:hidden to create a scrollable app window.
+          For printing, we need to override this completely so content can flow naturally across pages.
+          Changing 'display' from 'flex' to 'block' is the most critical part of this fix.
+        */
+        body, #root {
+          height: auto !important;
+          overflow: visible !important;
+        }
+        #root > div, .print-wrapper, main {
+            display: block !important;
+            height: auto !important;
+            overflow: visible !important;
+        }
+        main {
+            padding: 0 !important;
+        }
+
         .page-container {
           background-color: transparent !important;
           padding: 0 !important;
@@ -109,10 +119,8 @@
           box-shadow: none !important;
           border: none !important;
           margin: 0 !important;
-          padding: 1.5cm !important; /* Keep padding for print margins */
+          padding: 1.5cm !important;
           width: 100% !important;
-          height: auto !important; /* Allow natural page breaks based on content */
-          min-height: 0 !important;
           page-break-after: always;
         }
 
@@ -126,7 +134,6 @@
             border-color: #ccc !important;
         }
 
-        /* Ensure table rows do not break across pages */
         tr {
             page-break-inside: avoid;
         }
