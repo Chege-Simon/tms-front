@@ -70,15 +70,89 @@ const InvoiceDetail: React.FC = () => {
     
     if (!invoice) return <div className="text-center p-8">Invoice not found.</div>;
 
+     const PrintableView = () => (
+        <div className="printable-area">
+            <table className="w-full text-sm">
+                <thead>
+                    <tr className="border-b dark:border-gray-700">
+                        <td colSpan={2} className="py-4 align-top">
+                            <h2 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">JOFRA LTD</h2>
+                            <p className="text-gray-500 dark:text-gray-400">Invoice #{invoice.code}</p>
+                            <p className="text-gray-500 dark:text-gray-400">Status: {invoice.status}</p>
+                        </td>
+                        <td colSpan={2} className="py-4 align-top text-right">
+                            <p className="text-gray-500 dark:text-gray-400">Date: {new Date(invoice.issue_date).toLocaleDateString()}</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colSpan={2} className="pt-6 pb-8 align-top">
+                            <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Pay to:</h3>
+                            <address className="text-gray-600 dark:text-gray-400 not-italic">
+                                JOFRA LTD<br/>
+                                1462-0232, Ruiru<br/>
+                                Kenya<br/>
+                                VAT Code: AA-1234567890<br/>
+                                KRA PIN: P1234567890D
+                            </address>
+                        </td>
+                        <td colSpan={2} className="pt-6 pb-8 align-top text-right">
+                            <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Invoice to:</h3>
+                            <address className="text-gray-600 dark:text-gray-400 not-italic">
+                                {invoice.customer?.name}<br/>
+                                {invoice.customer?.address}<br/>
+                                {invoice.customer?.location}, {invoice.customer?.country}<br/>
+                                {invoice.customer?.phone}
+                            </address>
+                        </td>
+                    </tr>
+                    <tr className="bg-gray-50 dark:bg-gray-700">
+                        <th className="p-2 text-left font-semibold text-gray-700 dark:text-gray-200">Delivery Date</th>
+                        <th className="p-2 text-left font-semibold text-gray-700 dark:text-gray-200">Destination</th>
+                        <th className="p-2 text-left font-semibold text-gray-700 dark:text-gray-200">Driver</th>
+                        <th className="p-2 text-right font-semibold text-gray-700 dark:text-gray-200">Trip Charge</th>
+                    </tr>
+                </thead>
+                
+                <tbody>
+                    {(invoiceItems || []).map(item => (
+                        <tr key={item.id}>
+                            <td className="p-2 border-b dark:border-gray-700">{new Date(item.delivery_date).toLocaleDateString()}</td>
+                            <td className="p-2 border-b dark:border-gray-700">
+                                <p className="font-medium text-gray-800 dark:text-gray-200">{item.destination}</p>
+                                {item.route_charge && <p className="text-xs text-gray-500 dark:text-gray-400">{item.route_charge.route}</p>}
+                            </td>
+                            <td className="p-2 border-b dark:border-gray-700">{item.driver?.name}</td>
+                            <td className="p-2 text-right font-medium border-b dark:border-gray-700">{invoice.currency} {(item.actual_trip_charge || 0).toFixed(2)}</td>
+                        </tr>
+                    ))}
+                </tbody>
+
+                <tfoot>
+                    <tr>
+                        <td colSpan={4}>
+                             <div className="mt-8 pt-4 border-t dark:border-gray-700 text-right">
+                                <div className="inline-block w-full max-w-xs space-y-2 text-left">
+                                    <div className="flex justify-between font-bold text-lg text-gray-800 dark:text-white">
+                                        <span>Order total</span>
+                                        <span>{invoice.currency} {(invoice.total_amount || 0).toFixed(2)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    );
+
     return (
         <>
-            {/* Header for screen only */}
             <header className="no-print flex justify-between items-center mb-6">
                 <div>
                     <Link to="/invoices" className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">&larr; Back to invoices</Link>
                     <h1 className="text-2xl font-bold text-gray-800 dark:text-white mt-1">Invoice #{invoice.code}</h1>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="print-controls flex items-center space-x-2">
                     <Button variant="secondary" onClick={() => navigate(`/invoices/${id}/edit`)}><EditIcon /> <span className="ml-2">Edit</span></Button>
                     <Button variant="secondary" onClick={handlePrint}><PrintIcon /> <span className="ml-2">Print</span></Button>
                     <Button onClick={() => notifyWarning('PDF Download not implemented.')}><DownloadIcon /> <span className="ml-2">Download</span></Button>
@@ -86,74 +160,9 @@ const InvoiceDetail: React.FC = () => {
             </header>
             
             <div className="flex flex-col lg:flex-row gap-8">
-                {/* Main Content (Printable Area) */}
-                <div className="print-area lg:flex-1 bg-white dark:bg-gray-800 p-8 lg:p-12 shadow-lg rounded-lg">
-                    <div className="print-header">
-                        <header className="flex justify-between items-start pb-8 border-b dark:border-gray-700">
-                            <div>
-                                <h2 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">FleetFlow</h2>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Invoice #{invoice.code}</p>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Date: {new Date(invoice.issue_date).toLocaleDateString()}</p>
-                            </div>
-                        </header>
-                        <section className="grid grid-cols-2 gap-8 my-8">
-                            <div>
-                                <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Pay to:</h3>
-                                <address className="text-sm text-gray-600 dark:text-gray-400 not-italic">
-                                    FleetFlow LLC<br/>
-                                    123 Transport Lane<br/>
-                                    Anytown, USA 12345<br/>
-                                    VAT Code: AA-1234567890
-                                </address>
-                            </div>
-                            <div className="text-right">
-                                <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Invoice to:</h3>
-                                <address className="text-sm text-gray-600 dark:text-gray-400 not-italic">
-                                    {invoice.customer?.name}<br/>
-                                    {invoice.customer?.address}<br/>
-                                    {invoice.customer?.location}, {invoice.customer?.country}<br/>
-                                    {invoice.customer?.phone}
-                                </address>
-                            </div>
-                        </section>
-                    </div>
-                    <section>
-                         <div className="overflow-x-auto border rounded-lg dark:border-gray-700">
-                            <table className="min-w-full text-sm">
-                                <thead className="bg-gray-50 dark:bg-gray-700">
-                                    <tr>
-                                        <th className="p-3 text-left font-semibold text-gray-700 dark:text-gray-200">Delivery Date</th>
-                                        <th className="p-3 text-left font-semibold text-gray-700 dark:text-gray-200">Destination</th>
-                                        <th className="p-3 text-left font-semibold text-gray-700 dark:text-gray-200">Driver</th>
-                                        <th className="p-3 text-right font-semibold text-gray-700 dark:text-gray-200">Trip Charge</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y dark:divide-gray-600">
-                                    {invoiceItems?.map(item => (
-                                        <tr key={item.id}>
-                                            <td className="p-3">{new Date(item.delivery_date).toLocaleDateString()}</td>
-                                            <td className="p-3">
-                                                <p className="font-medium text-gray-800 dark:text-gray-200">{item.destination}</p>
-                                                {item.route_charge && <p className="text-xs text-gray-500 dark:text-gray-400">{item.route_charge.route}</p>}
-                                            </td>
-                                            <td className="p-3">{item.driver?.name}</td>
-                                            <td className="p-3 text-right font-medium">{invoice.currency} {(Number(item.actual_trip_charge) || 0).toFixed(2)}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                         </div>
-                    </section>
-                    <section className="flex justify-end mt-8">
-                        <div className="w-full max-w-xs space-y-2 text-sm">
-                            <div className="flex justify-between font-bold text-lg text-gray-800 dark:text-white border-t pt-2 mt-2 dark:border-gray-600">
-                                <span>Order total</span>
-                                <span>{invoice.currency} {(Number(invoice.total_amount) || 0).toFixed(2)}</span>
-                            </div>
-                        </div>
-                    </section>
+                {/* On-screen visible version */}
+                <div className="lg:flex-1 bg-white dark:bg-gray-800 p-8 shadow-md rounded-lg">
+                    <PrintableView />
                 </div>
 
                 {/* Sidebar for screen only */}
@@ -189,9 +198,13 @@ const InvoiceDetail: React.FC = () => {
                     </div>
                 </aside>
             </div>
+
+            {/* Hidden, print-only version */}
+            <div id="invoice-print-content" className="hidden">
+                <PrintableView />
+            </div>
         </>
     );
 };
 
-// FIX: Added the missing default export for the InvoiceDetail component.
 export default InvoiceDetail;
