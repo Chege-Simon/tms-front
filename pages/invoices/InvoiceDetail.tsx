@@ -134,7 +134,7 @@ const InvoiceDetail: React.FC = () => {
                                 <div className="inline-block w-full max-w-xs space-y-2 text-left">
                                     <div className="flex justify-between font-bold text-lg text-gray-800 dark:text-white">
                                         <span>Order total</span>
-                                        <span>{invoice.currency} {(invoice.total_amount || 0).toFixed(2)}</span>
+                                        <span>{invoice.currency} {parseFloat(invoice.total_amount || 0).toFixed(2)}</span>
                                     </div>
                                 </div>
                             </div>
