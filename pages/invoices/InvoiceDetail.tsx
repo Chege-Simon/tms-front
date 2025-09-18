@@ -134,7 +134,7 @@ const InvoiceDetail: React.FC = () => {
                                         <tr>
                                             <th className="p-2 text-left font-semibold">Delivery Date</th>
                                             <th className="p-2 text-left font-semibold">Destination</th>
-                                            <th className="p-2 text-left font-semibold">Driver</th>
+                                            <th className="p-2 text-left font-semibold">Route</th>
                                             <th className="p-2 text-right font-semibold">Trip Charge</th>
                                         </tr>
                                     </thead>
@@ -142,11 +142,8 @@ const InvoiceDetail: React.FC = () => {
                                         {chunk.map(item => (
                                             <tr key={item.id} className="border-b dark:border-gray-600">
                                                 <td className="p-2">{new Date(item.delivery_date).toLocaleDateString()}</td>
-                                                <td className="p-2">
-                                                    <p className="font-medium">{item.destination}</p>
-                                                    {item.route_charge && <p className="text-xs text-gray-500 dark:text-gray-400">{item.route_charge.route}</p>}
-                                                </td>
-                                                <td className="p-2">{item.driver?.name}</td>
+                                                <td className="p-2 font-medium">{item.destination}</td>
+                                                <td className="p-2 text-gray-600 dark:text-gray-400">{item.route_charge?.route || 'N/A'}</td>
                                                 <td className="p-2 text-right font-medium">{invoice.currency} {parseFloat(item.actual_trip_charge || 0).toFixed(2)}</td>
                                             </tr>
                                         ))}
