@@ -78,6 +78,17 @@
       }
       
       @media print {
+        /* FIX: Override main layout constraints to allow content to flow across pages */
+        body, #root, #root > div {
+          height: auto !important;
+          overflow: visible !important;
+        }
+        main {
+            padding: 0 !important;
+            overflow: visible !important;
+        }
+        /* END FIX */
+
         body {
           background-color: #fff !important;
           -webkit-print-color-adjust: exact;
@@ -85,10 +96,6 @@
         }
         .no-print {
           display: none !important;
-        }
-        
-        main {
-            padding: 0 !important;
         }
         
         .page-container {
@@ -104,8 +111,9 @@
           margin: 0 !important;
           padding: 1.5cm !important; /* Keep padding for print margins */
           width: 100% !important;
-          height: 297mm !important; /* Enforce A4 height */
-          page-break-after: always; /* Ensure each page prints on a new sheet */
+          height: auto !important; /* Allow natural page breaks based on content */
+          min-height: 0 !important;
+          page-break-after: always;
         }
 
         .page-view:last-child {
