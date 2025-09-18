@@ -29,16 +29,52 @@
       }
     </script>
     <style>
-      /* Styles for browser-native printing */
+      /* Styles for on-screen paged view and printing */
+      .page-container {
+        background-color: #f0f2f5;
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+      }
+      .dark .page-container {
+        background-color: #1f2937;
+      }
+      .page-view {
+        background: #fff;
+        width: 210mm;
+        min-height: 297mm; /* Use min-height to allow content to grow slightly if needed */
+        padding: 1.5cm;
+        box-shadow: 0 0 10px rgba(0,0,0,0.15);
+        box-sizing: border-box;
+        color: #000;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+      .dark .page-view {
+          background: #374151;
+          border: 1px solid #4b5563;
+          color: #fff;
+      }
+      .page-content {
+        flex-grow: 1;
+      }
+      .page-footer {
+        text-align: right;
+        font-size: 0.8rem;
+        color: #666;
+        padding-top: 1rem;
+        margin-top: auto; /* Push to bottom */
+      }
+      .dark .page-footer {
+        color: #d1d5db;
+      }
+
       @page {
         size: A4;
-        margin: 1.5cm; /* Standard page margins */
-
-        @bottom-right {
-          content: "Page " counter(page);
-          font-size: 10pt;
-          color: #666;
-        }
+        margin: 0;
       }
       
       @media print {
@@ -51,58 +87,40 @@
           display: none !important;
         }
         
-        /* Hide app chrome when printing */
-        #root > div > aside, 
-        #root > div > div > header, 
-        #root > div > div > main > nav,
-        .print-controls {
-            display: none !important;
-        }
-
-        /* CRITICAL FIX: Override screen layout constraints */
-        html, body, #root, #root > div, #root > div > div {
-          height: auto !important;
-          overflow: visible !important;
-        }
-
         main {
             padding: 0 !important;
-            overflow: visible !important; /* Allow content to break across pages */
         }
         
-        .printable-area {
-            box-shadow: none !important;
-            border: none !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            width: 100% !important;
-            color: #000 !important; /* Ensure text is black for printing */
+        .page-container {
+          background-color: transparent !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          gap: 0 !important;
         }
 
-        .dark .printable-area, .dark .printable-area * {
+        .page-view {
+          box-shadow: none !important;
+          border: none !important;
+          margin: 0 !important;
+          padding: 1.5cm !important; /* Keep padding for print margins */
+          width: 100% !important;
+          height: 297mm !important; /* Enforce A4 height */
+          page-break-after: always; /* Ensure each page prints on a new sheet */
+        }
+
+        .page-view:last-child {
+          page-break-after: auto;
+        }
+
+        .dark .page-view, .dark .page-view * {
             background-color: #fff !important;
             color: #000 !important;
             border-color: #ccc !important;
         }
-        
-        .printable-area table {
-            width: 100%;
-            border-collapse: collapse; /* Ensure borders are clean */
-        }
 
-        /* This is the magic for repeating headers */
-        .printable-area thead {
-          display: table-header-group;
-        }
-        
-        /* This is the magic for the footer on the last page */
-        .printable-area tfoot {
-          display: table-footer-group;
-        }
-        
-        /* Prevent rows from splitting across pages */
-        .printable-area tbody tr {
-          page-break-inside: avoid;
+        /* Ensure table rows do not break across pages */
+        tr {
+            page-break-inside: avoid;
         }
       }
     </style>
@@ -120,7 +138,6 @@
 </head>
   <body class="bg-gray-100 dark:bg-gray-900 font-sans">
     <div id="root"></div>
-    <script src="https://printjs-4de6.kxcdn.com/print.min.js"></script>
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>

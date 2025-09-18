@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCrud, useFetch } from '../../hooks/useCrud';
@@ -9,6 +7,14 @@ import { DownloadIcon, PrintIcon, EditIcon } from '../../components/icons';
 import { notifyWarning, notifySuccess, notifyError } from '../../services/notification';
 import api from '../../services/api';
 import { formatDateForApi } from '../../services/datetime';
+
+const chunkArray = <T,>(arr: T[], size: number): T[][] => {
+  const chunks: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) {
+    chunks.push(arr.slice(i, i + size));
+  }
+  return chunks;
+};
 
 const InvoiceDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -38,12 +44,11 @@ const InvoiceDetail: React.FC = () => {
         setIsUpdating(true);
         
         const payload = {
+            ...invoice,
             issue_date: formatDateForApi(invoice.issue_date),
             due_date: formatDateForApi(invoice.due_date),
             customer_id: invoice.customer?.id || invoice.customer_id,
             vehicle_id: invoice.vehicle?.id || invoice.vehicle_id,
-            currency: invoice.currency,
-            total_amount: invoice.total_amount || 0,
             status: newStatus,
         };
         
@@ -62,7 +67,6 @@ const InvoiceDetail: React.FC = () => {
         }
     };
 
-
     if (invoiceLoading || itemsLoading) return <div className="text-center p-8">Loading invoice...</div>;
     
     const combinedError = invoiceError || itemsError;
@@ -70,80 +74,8 @@ const InvoiceDetail: React.FC = () => {
     
     if (!invoice) return <div className="text-center p-8">Invoice not found.</div>;
 
-     const PrintableView = () => (
-        <div className="printable-area">
-            <table className="w-full text-sm">
-                <thead>
-                    <tr className="border-b dark:border-gray-700">
-                        <td colSpan={2} className="py-4 align-top">
-                            <h2 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">JOFRA LTD</h2>
-                            <p className="text-gray-500 dark:text-gray-400">Invoice #{invoice.code}</p>
-                            <p className="text-gray-500 dark:text-gray-400">Status: {invoice.status}</p>
-                        </td>
-                        <td colSpan={2} className="py-4 align-top text-right">
-                            <p className="text-gray-500 dark:text-gray-400">Date: {new Date(invoice.issue_date).toLocaleDateString()}</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colSpan={2} className="pt-6 pb-8 align-top">
-                            <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Pay to:</h3>
-                            <address className="text-gray-600 dark:text-gray-400 not-italic">
-                                JOFRA LTD<br/>
-                                1462-0232, Ruiru<br/>
-                                Kenya<br/>
-                                VAT Code: AA-1234567890<br/>
-                                KRA PIN: P1234567890D
-                            </address>
-                        </td>
-                        <td colSpan={2} className="pt-6 pb-8 align-top text-right">
-                            <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Invoice to:</h3>
-                            <address className="text-gray-600 dark:text-gray-400 not-italic">
-                                {invoice.customer?.name}<br/>
-                                {invoice.customer?.address}<br/>
-                                {invoice.customer?.location}, {invoice.customer?.country}<br/>
-                                {invoice.customer?.phone}
-                            </address>
-                        </td>
-                    </tr>
-                    <tr className="bg-gray-50 dark:bg-gray-700">
-                        <th className="p-2 text-left font-semibold text-gray-700 dark:text-gray-200">Delivery Date</th>
-                        <th className="p-2 text-left font-semibold text-gray-700 dark:text-gray-200">Destination</th>
-                        <th className="p-2 text-left font-semibold text-gray-700 dark:text-gray-200">Driver</th>
-                        <th className="p-2 text-right font-semibold text-gray-700 dark:text-gray-200">Trip Charge</th>
-                    </tr>
-                </thead>
-                
-                <tbody>
-                    {(invoiceItems || []).map(item => (
-                        <tr key={item.id}>
-                            <td className="p-2 border-b dark:border-gray-700">{new Date(item.delivery_date).toLocaleDateString()}</td>
-                            <td className="p-2 border-b dark:border-gray-700">
-                                <p className="font-medium text-gray-800 dark:text-gray-200">{item.destination}</p>
-                                {item.route_charge && <p className="text-xs text-gray-500 dark:text-gray-400">{item.route_charge.route}</p>}
-                            </td>
-                            <td className="p-2 border-b dark:border-gray-700">{item.driver?.name}</td>
-                            <td className="p-2 text-right font-medium border-b dark:border-gray-700">{invoice.currency} {parseFloat(item.actual_trip_charge || 0).toFixed(2)}</td>
-                        </tr>
-                    ))}
-                </tbody>
-
-                <tfoot>
-                    <tr>
-                        <td colSpan={4}>
-                             <div className="mt-8 pt-4 border-t dark:border-gray-700 text-right">
-                                <div className="inline-block w-full max-w-xs space-y-2 text-left">
-                                    <div className="flex justify-between font-bold text-lg text-gray-800 dark:text-white">
-                                        <span>Order total</span>
-                                        <span>{invoice.currency} {parseFloat(invoice.total_amount || 0).toFixed(2)}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-    );
+    const itemChunks = chunkArray(invoiceItems || [], 10);
+    const totalPages = itemChunks.length || 1;
 
     return (
         <>
@@ -160,10 +92,88 @@ const InvoiceDetail: React.FC = () => {
             </header>
             
             <div className="flex flex-col lg:flex-row gap-8">
-                {/* On-screen visible version */}
-                <div className="lg:flex-1 bg-white dark:bg-gray-800 p-8 shadow-md rounded-lg">
-                    <PrintableView />
-                </div>
+                <main className="lg:flex-1 page-container">
+                    {itemChunks.length > 0 ? itemChunks.map((chunk, pageIndex) => (
+                        <div key={pageIndex} className="page-view">
+                            <div className="page-content">
+                                {/* Repeating Header */}
+                                <header className="flex justify-between items-start pb-4 border-b dark:border-gray-600">
+                                    <div>
+                                        <h2 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">JOFRA LTD</h2>
+                                        <p className="text-sm">Invoice #{invoice.code}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-sm">Date: {new Date(invoice.issue_date).toLocaleDateString()}</p>
+                                    </div>
+                                </header>
+                                <section className="grid grid-cols-2 gap-8 my-6 text-sm">
+                                    <div>
+                                        <h3 className="font-semibold mb-2">Pay to:</h3>
+                                        <address className="not-italic">
+                                            JOFRA LTD<br/>
+                                            1462-0232, Ruiru<br/>
+                                            Kenya<br/>
+                                            VAT Code: AA-1234567890<br/>
+                                            KRA PIN: P1234567890D
+                                        </address>
+                                    </div>
+                                    <div className="text-right">
+                                        <h3 className="font-semibold mb-2">Invoice to:</h3>
+                                        <address className="not-italic">
+                                            {invoice.customer?.name}<br/>
+                                            {invoice.customer?.address}<br/>
+                                            {invoice.customer?.location}, {invoice.customer?.country}<br/>
+                                            {invoice.customer?.phone}
+                                        </address>
+                                    </div>
+                                </section>
+
+                                {/* Items Table for this chunk */}
+                                <table className="w-full text-sm">
+                                    <thead className="bg-gray-50 dark:bg-gray-700">
+                                        <tr>
+                                            <th className="p-2 text-left font-semibold">Delivery Date</th>
+                                            <th className="p-2 text-left font-semibold">Destination</th>
+                                            <th className="p-2 text-left font-semibold">Driver</th>
+                                            <th className="p-2 text-right font-semibold">Trip Charge</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {chunk.map(item => (
+                                            <tr key={item.id} className="border-b dark:border-gray-600">
+                                                <td className="p-2">{new Date(item.delivery_date).toLocaleDateString()}</td>
+                                                <td className="p-2">
+                                                    <p className="font-medium">{item.destination}</p>
+                                                    {item.route_charge && <p className="text-xs text-gray-500 dark:text-gray-400">{item.route_charge.route}</p>}
+                                                </td>
+                                                <td className="p-2">{item.driver?.name}</td>
+                                                <td className="p-2 text-right font-medium">{invoice.currency} {parseFloat(item.actual_trip_charge || 0).toFixed(2)}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+
+                                {/* Totals - only on last page */}
+                                {pageIndex === totalPages - 1 && (
+                                     <section className="flex justify-end mt-8">
+                                        <div className="w-full max-w-xs space-y-2 text-sm">
+                                            <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2 dark:border-gray-600">
+                                                <span>Order total</span>
+                                                <span>{invoice.currency} {parseFloat(invoice.total_amount || 0).toFixed(2)}</span>
+                                            </div>
+                                        </div>
+                                    </section>
+                                )}
+                            </div>
+                            <div className="page-footer">Page {pageIndex + 1} of {totalPages}</div>
+                        </div>
+                    )) : (
+                        <div className="page-view">
+                          {/* Render a blank page with headers if there are no items */}
+                          <p className="text-center py-10 text-gray-500">No items have been added to this invoice yet.</p>
+                        </div>
+                    )}
+                </main>
 
                 {/* Sidebar for screen only */}
                 <aside className="no-print lg:w-80 flex-shrink-0 space-y-6">
@@ -197,11 +207,6 @@ const InvoiceDetail: React.FC = () => {
                         <div className="flex justify-between"><span className="text-gray-500 dark:text-gray-400">Currency:</span><span className="font-medium">{invoice.currency}</span></div>
                     </div>
                 </aside>
-            </div>
-
-            {/* Hidden, print-only version */}
-            <div id="invoice-print-content" className="hidden">
-                <PrintableView />
             </div>
         </>
     );
