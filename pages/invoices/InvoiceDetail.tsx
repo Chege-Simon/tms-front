@@ -40,42 +40,37 @@ const InvoiceDetail: React.FC = () => {
             
             <div className="printable-area bg-white dark:bg-gray-800 p-8 shadow-md rounded-lg">
                 <table className="w-full text-sm">
-                    {/* The repeating header */}
                     <thead>
+                        <tr className="border-b dark:border-gray-700">
+                            <td colSpan={2} className="py-4 align-top">
+                                <h2 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">JOFRA LTD</h2>
+                                <p className="text-gray-500 dark:text-gray-400">Invoice #{invoice.code}</p>
+                                <p className="text-gray-500 dark:text-gray-400">Status: {invoice.status}</p>
+                            </td>
+                            <td colSpan={2} className="py-4 align-top text-right">
+                                <p className="text-gray-500 dark:text-gray-400">Date: {new Date(invoice.issue_date).toLocaleDateString()}</p>
+                            </td>
+                        </tr>
                         <tr>
-                            <th colSpan={4} className="p-0">
-                                <header className="flex justify-between items-start pb-4 border-b dark:border-gray-700 mb-4">
-                                    <div>
-                                        <h2 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">JOFRA LTD</h2>
-                                        <p className="text-gray-500 dark:text-gray-400">Invoice #{invoice.code}</p>
-                                        <p className="text-gray-500 dark:text-gray-400">Status: {invoice.status}</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-gray-500 dark:text-gray-400">Date: {new Date(invoice.issue_date).toLocaleDateString()}</p>
-                                    </div>
-                                </header>
-                                <section className="grid grid-cols-2 gap-8 mb-8 text-left">
-                                    <div>
-                                        <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Pay to:</h3>
-                                        <address className="text-gray-600 dark:text-gray-400 not-italic">
-                                            JOFRA LTD<br/>
-                                            1462-0232, Ruiru<br/>
-                                            Kenya<br/>
-                                            VAT Code: AA-1234567890<br/>
-                                            KRA PIN: P1234567890D
-                                        </address>
-                                    </div>
-                                    <div className="text-right">
-                                        <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Invoice to:</h3>
-                                        <address className="text-gray-600 dark:text-gray-400 not-italic">
-                                            {invoice.customer?.name}<br/>
-                                            {invoice.customer?.address}<br/>
-                                            {invoice.customer?.location}, {invoice.customer?.country}<br/>
-                                            {invoice.customer?.phone}
-                                        </address>
-                                    </div>
-                                </section>
-                            </th>
+                            <td colSpan={2} className="pt-6 pb-8 align-top">
+                                <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Pay to:</h3>
+                                <address className="text-gray-600 dark:text-gray-400 not-italic">
+                                    JOFRA LTD<br/>
+                                    1462-0232, Ruiru<br/>
+                                    Kenya<br/>
+                                    VAT Code: AA-1234567890<br/>
+                                    KRA PIN: P1234567890D
+                                </address>
+                            </td>
+                            <td colSpan={2} className="pt-6 pb-8 align-top text-right">
+                                <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Invoice to:</h3>
+                                <address className="text-gray-600 dark:text-gray-400 not-italic">
+                                    {invoice.customer?.name}<br/>
+                                    {invoice.customer?.address}<br/>
+                                    {invoice.customer?.location}, {invoice.customer?.country}<br/>
+                                    {invoice.customer?.phone}
+                                </address>
+                            </td>
                         </tr>
                         <tr className="bg-gray-50 dark:bg-gray-700">
                             <th className="p-2 text-left font-semibold text-gray-700 dark:text-gray-200">Delivery Date</th>
@@ -85,7 +80,6 @@ const InvoiceDetail: React.FC = () => {
                         </tr>
                     </thead>
                     
-                    {/* The items */}
                     <tbody>
                         {(invoiceItems || []).map(item => (
                             <tr key={item.id}>
@@ -100,18 +94,17 @@ const InvoiceDetail: React.FC = () => {
                         ))}
                     </tbody>
 
-                    {/* The footer, only appears on the last page */}
                     <tfoot>
                         <tr>
-                            <td colSpan={4} className="p-0">
-                                 <section className="flex justify-end mt-8 pt-4 border-t dark:border-gray-700">
-                                    <div className="w-full max-w-xs space-y-2">
+                            <td colSpan={4}>
+                                 <div className="mt-8 pt-4 border-t dark:border-gray-700 text-right">
+                                    <div className="inline-block w-full max-w-xs space-y-2 text-left">
                                         <div className="flex justify-between font-bold text-lg text-gray-800 dark:text-white">
                                             <span>Order total</span>
                                             <span>{invoice.currency} {parseFloat(invoice.total_amount || 0).toFixed(2)}</span>
                                         </div>
                                     </div>
-                                </section>
+                                </div>
                             </td>
                         </tr>
                     </tfoot>
