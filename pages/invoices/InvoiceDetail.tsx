@@ -122,7 +122,7 @@ const InvoiceDetail: React.FC = () => {
                                 {item.route_charge && <p className="text-xs text-gray-500 dark:text-gray-400">{item.route_charge.route}</p>}
                             </td>
                             <td className="p-2 border-b dark:border-gray-700">{item.driver?.name}</td>
-                            <td className="p-2 text-right font-medium border-b dark:border-gray-700">{invoice.currency} {(item.actual_trip_charge || 0).toFixed(2)}</td>
+                            <td className="p-2 text-right font-medium border-b dark:border-gray-700">{invoice.currency} {parseFloat(item.actual_trip_charge || 0).toFixed(2)}</td>
                         </tr>
                     ))}
                 </tbody>
