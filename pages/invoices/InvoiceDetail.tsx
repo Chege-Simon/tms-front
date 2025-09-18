@@ -88,35 +88,37 @@ const InvoiceDetail: React.FC = () => {
             <div className="flex flex-col lg:flex-row gap-8">
                 {/* Main Content (Printable Area) */}
                 <div className="print-area lg:flex-1 bg-white dark:bg-gray-800 p-8 lg:p-12 shadow-lg rounded-lg">
-                   <header className="flex justify-between items-start pb-8 border-b dark:border-gray-700">
-                        <div>
-                            <h2 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">FleetFlow</h2>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Invoice #{invoice.code}</p>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Date: {new Date(invoice.issue_date).toLocaleDateString()}</p>
-                        </div>
-                    </header>
-                    <section className="grid grid-cols-2 gap-8 my-8">
-                        <div>
-                            <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Pay to:</h3>
-                            <address className="text-sm text-gray-600 dark:text-gray-400 not-italic">
-                                FleetFlow LLC<br/>
-                                123 Transport Lane<br/>
-                                Anytown, USA 12345<br/>
-                                VAT Code: AA-1234567890
-                            </address>
-                        </div>
-                        <div className="text-right">
-                             <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Invoice to:</h3>
-                            <address className="text-sm text-gray-600 dark:text-gray-400 not-italic">
-                                {invoice.customer?.name}<br/>
-                                {invoice.customer?.address}<br/>
-                                {invoice.customer?.location}, {invoice.customer?.country}<br/>
-                                {invoice.customer?.phone}
-                            </address>
-                        </div>
-                    </section>
+                    <div className="print-header">
+                        <header className="flex justify-between items-start pb-8 border-b dark:border-gray-700">
+                            <div>
+                                <h2 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">FleetFlow</h2>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">Invoice #{invoice.code}</p>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-sm text-gray-500 dark:text-gray-400">Date: {new Date(invoice.issue_date).toLocaleDateString()}</p>
+                            </div>
+                        </header>
+                        <section className="grid grid-cols-2 gap-8 my-8">
+                            <div>
+                                <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Pay to:</h3>
+                                <address className="text-sm text-gray-600 dark:text-gray-400 not-italic">
+                                    FleetFlow LLC<br/>
+                                    123 Transport Lane<br/>
+                                    Anytown, USA 12345<br/>
+                                    VAT Code: AA-1234567890
+                                </address>
+                            </div>
+                            <div className="text-right">
+                                <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Invoice to:</h3>
+                                <address className="text-sm text-gray-600 dark:text-gray-400 not-italic">
+                                    {invoice.customer?.name}<br/>
+                                    {invoice.customer?.address}<br/>
+                                    {invoice.customer?.location}, {invoice.customer?.country}<br/>
+                                    {invoice.customer?.phone}
+                                </address>
+                            </div>
+                        </section>
+                    </div>
                     <section>
                          <div className="overflow-x-auto border rounded-lg dark:border-gray-700">
                             <table className="min-w-full text-sm">

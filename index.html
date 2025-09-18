@@ -36,6 +36,28 @@
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
         }
+
+        .print-header {
+          position: running(printHeader);
+        }
+
+        @page {
+          @top-center {
+            content: element(printHeader);
+          }
+
+          margin-top: 2in; /* Adjust to avoid overlap with content */
+        }
+
+        /* Optional: prevent page break inside table rows */
+        table, tr, td, th {
+          page-break-inside: avoid;
+        }
+
+        /* Optional: ensure table headers repeat */
+        thead {
+          display: table-header-group;
+        }
         .no-print {
           display: none !important;
         }
